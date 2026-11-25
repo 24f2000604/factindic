@@ -138,7 +138,7 @@ def max_over_chunks(scorer, chunks, claims, cache=None):
 
 def source_for_variant(rec, variant, mode="deployment"):
     """Text the verifier treats as D. Deployment: the input variant (Romanized → back-transliterated
-    to native). Oracle: the aligned native article (analysis only, H3 proxy)."""
+    to native). Oracle: the aligned native article (logged only)."""
     from .translit import back_transliterate
     if mode == "oracle" or variant in ("native", "natural_cm"):
         return rec["variants"].get("native", rec["text"])

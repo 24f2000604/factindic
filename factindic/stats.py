@@ -48,8 +48,3 @@ def cohen_kappa(a, b):
     from sklearn.metrics import cohen_kappa_score
     a, b = list(a), list(b)
     return float(cohen_kappa_score(a, b)) if len(set(a) | set(b)) > 1 else float("nan")
-
-
-def macro_f1(y, yhat):
-    from sklearn.metrics import f1_score
-    return float(f1_score(y, yhat, average="macro"))

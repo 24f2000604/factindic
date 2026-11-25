@@ -1,5 +1,5 @@
 """Stage 0/1 data preparation: sanitation, testbed/dev/natural-CM sets with normalized anchors,
-mFACT-style faithfulness weights, naturalness sheets, and the data figures."""
+mFACT-style faithfulness weights, and the data figures."""
 from __future__ import annotations
 
 import numpy as np

@@ -53,7 +53,7 @@ Rough time after the downloads: data 20 min, smoke 30–45 min, full 3–4.5 h (
 - ₹0, open models only, no paid APIs. FactCG is held out: never for training weights or reranking.
 - Don't change the hypotheses, thresholds or samples after seeing results. Report negative results as they are.
 - State in the paper: reduced sizes (`n_use` in `config.py`), the natural code-mixed CMI actually reached (spec: ≥ 8),
-  bf16 here versus 4-bit in H1, old Romanizer in H1, H3 measured by the label-free proxy unless sheets get labelled.
+  bf16 here versus 4-bit in H1, old Romanizer in H1, H3 planned but not evaluated (no human labels; do not report the label-free proxy).
 - After any change in `factindic/`, run `python tools/build_notebooks.py` so the Kaggle notebook stays identical.
 - Don't commit `runs/`, models or tokens. Commit code, figures, tables and `results/factindic_final.zip` (if < 50 MB).
 

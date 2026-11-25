@@ -1,5 +1,5 @@
 """Stage 4: Hybrid Verification Router + single-round candidate reranking (K=5),
-capped pruning, drop-only baseline; also logs oracle-source verdicts for the H3 analysis."""
+capped pruning, drop-only baseline; also logs verdicts against the aligned native source (kept in the logs, not used in any result)."""
 from __future__ import annotations
 
 import time

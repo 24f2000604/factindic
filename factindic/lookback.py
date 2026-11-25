@@ -2,7 +2,7 @@
 
 LR(l,h)_t = Σ_ctx Attn(t,i) / (Σ_ctx Attn(t,i) + Σ_new Attn(t,j)); averaged over each sentence's
 tokens, concatenated with the sentence's relative position. An L2 logistic regression detects
-unsupported sentences (labels: human dev labels when present, else held-out verifier labels).
+unsupported sentences (labels: the held-out verifier).
 """
 from __future__ import annotations
 

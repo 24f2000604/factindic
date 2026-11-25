@@ -329,8 +329,8 @@ def run_all():
     res["stage3_params"] = json_load(DIRS["outputs"] / "stage3_params.json")
     res["stage2_dev"] = json_load(DIRS["outputs"] / "stage2_dev_scores.json")
     res["sanitation"] = json_load(DIRS["data"] / "sanitation_report.json")
-    human = json_load(DIRS["eval"] / "human_results.json")
-    if human:
-        res["h3"] = human
+    lookback = json_load(DIRS["eval"] / "lookback.json")
+    if lookback:
+        res["lookback"] = lookback
     json_dump(res, DIRS["eval"] / "results.json")
     return res
