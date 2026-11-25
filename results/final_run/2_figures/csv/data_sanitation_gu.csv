@@ -1,0 +1,10 @@
+lang,rule,source,pct
+gu,empty_or_short,this run,0.0
+gu,duplicate_pair,this run,0.0
+gu,duplicate_pair,CEUR Vol-3395 audit,0.0
+gu,duplicate_summary,this run,0.11824524062906468
+gu,duplicate_summary,CEUR Vol-3395 audit,1.336171219108431
+gu,article_prefix_copy,this run,2.3294312403925743
+gu,article_prefix_copy,CEUR Vol-3395 audit,1.596310748492373
+gu,summary_gt_50pct,this run,0.42568286626463286
+gu,summary_gt_50pct,CEUR Vol-3395 audit,0.4375073903275393

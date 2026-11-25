@@ -1,0 +1,226 @@
+diff --git a/factindic/config.py b/factindic/config.py
+index 66f6130..e7561be 100644
+--- a/factindic/config.py
++++ b/factindic/config.py
+@@ -189,6 +189,17 @@ def hf_login():
+     return bool(tok)
+ 
+ 
++def safe_attention():
++    """On the RTX 5050 (torch 2.8, CUDA 12.8) PyTorch's memory-efficient attention kernel silently gives wrong
++    results for Gemma-4 when the sequence length is 32k + 1 (513, 673, 1089: logits off by 10-30). The math
++    kernel agrees with eager attention at every length."""
++    if IS_LOCAL:
++        import torch
++        torch.backends.cuda.enable_mem_efficient_sdp(False)
++        torch.backends.cuda.enable_flash_sdp(False)
++        torch.backends.cuda.enable_cudnn_sdp(False)
++
++
+ def max_new_tokens(model_key):
+     g = CFG["gen"]
+     return g["max_new_tokens_by_model"].get(model_key, g["max_new_tokens"])
+diff --git a/factindic/it2_server.py b/factindic/it2_server.py
+index bba687c..2f53e5f 100644
+--- a/factindic/it2_server.py
++++ b/factindic/it2_server.py
+@@ -35,13 +35,11 @@ def main(model_id):
+         return ip.postprocess_batch(dec, lang="eng_Latn")
+ 
+     def safe(sents, src, retry):
+-        err = None
+         try:
+             return run(sents, src, retry)
+-        except torch.cuda.OutOfMemoryError as e:
+-            err = e
+-        if len(sents) == 1:
+-            raise err
++        except torch.cuda.OutOfMemoryError:      # not stored: its traceback would keep the failed batch on the GPU
++            if len(sents) == 1:
++                raise
+         torch.cuda.empty_cache()
+         mid = len(sents) // 2
+         return safe(sents[:mid], src, retry) + safe(sents[mid:], src, retry)
+diff --git a/factindic/llm.py b/factindic/llm.py
+index 9344cf3..6baef2a 100644
+--- a/factindic/llm.py
++++ b/factindic/llm.py
+@@ -7,7 +7,7 @@ import time
+ 
+ import torch
+ 
+-from .config import IS_LOCAL
++from .config import IS_LOCAL, safe_attention
+ 
+ DEV = "cuda"
+ 
+@@ -89,6 +89,7 @@ def _gemma_split(model_id, **kw):
+ def load_causal(model_id, adapter=None, attn_implementation=None, trials=None):
+     """Returns (model, tok, precision_desc). Keeps the first config whose logits are finite."""
+     import transformers as tf
++    safe_attention()
+     tok = load_tokenizer(model_id)
+     classes = [getattr(tf, c) for c in ("AutoModelForCausalLM", "AutoModelForImageTextToText",
+                                         "AutoModelForMultimodalLM") if hasattr(tf, c)]
+diff --git a/factindic/normalizer.py b/factindic/normalizer.py
+index 8798b44..8d9f034 100644
+--- a/factindic/normalizer.py
++++ b/factindic/normalizer.py
+@@ -199,7 +199,7 @@ def anchor_prf(a_s, a_d, a_r, d_text=None, lang=None):
+ 
+ def salient_anchors(a_d, d_text, lang, top=6):
+     """Most frequent source anchors (ties → earlier first mention), used by the Stage-4 J score."""
+-    keys = list(anchor_set(a_d))
++    keys = sorted(anchor_set(a_d))           # a fixed order for ties, whatever the hash seed
+     if not keys:
+         return []
+     toks = d_text.split()
+diff --git a/factindic/parallel.py b/factindic/parallel.py
+index 13b2b18..3f6ea06 100644
+--- a/factindic/parallel.py
++++ b/factindic/parallel.py
+@@ -61,4 +61,6 @@ def run(func_path, n_gpus=None, **kwargs):
+ if __name__ == "__main__":
+     func_path, job, i, n = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
+     kwargs = json.loads(Path(job).read_text())
++    from factindic.config import safe_attention
++    safe_attention()
+     _resolve(func_path)(shard=i, n_shards=n, **kwargs)
+diff --git a/factindic/pipeline/analysis.py b/factindic/pipeline/analysis.py
+index e6112e1..5463d1f 100644
+--- a/factindic/pipeline/analysis.py
++++ b/factindic/pipeline/analysis.py
+@@ -66,7 +66,7 @@ METRICS = ["P_fact", "R_fact", "F1_fact", "P_anchor", "R_anchor", "F1_anchor", "
+ def main_table(ev):
+     rows = []
+     for (s, lang, v), d in ev.groupby(["system", "lang", "variant"]):
+-        r = dict(system=s, label=LABEL.get(s, s), lang=lang, variant=v, n=len(d), empty_rate=float(d.empty.mean()))
++        r = dict(system=s, label=LABEL.get(s, s), lang=lang, variant=v, n=len(d), empty_rate=float(d["empty"].mean()))
+         for m in METRICS:
+             if m in d:
+                 r[m] = float(d[m].astype(float).mean())
+diff --git a/factindic/pipeline/auto.py b/factindic/pipeline/auto.py
+index 449e446..4e13362 100644
+--- a/factindic/pipeline/auto.py
++++ b/factindic/pipeline/auto.py
+@@ -16,7 +16,7 @@ import time
+ from dataclasses import dataclass, field
+ from pathlib import Path
+ 
+-from ..config import CFG, DIRS, IS_KAGGLE, MODELS, ROOT
++from ..config import CFG, DIRS, IS_KAGGLE, IS_LOCAL, MODELS, ROOT
+ from ..io import free_gpu, jl_read_glob, json_dump, json_load
+ 
+ SELECTED = DIRS["outputs"] / "stage2_selected.json"
+@@ -60,7 +60,8 @@ def s2s(shard, n_shards, name, **_):
+         return
+     train_seq2seq(name)
+     seq2seq_gen_job(0, 1, name=name)
+-    shutil.rmtree(DIRS["models"] / name, ignore_errors=True)     # 1-2 GB, not needed again
++    if not IS_LOCAL:                     # 1-2 GB, not needed again; a laptop has room to keep them
++        shutil.rmtree(DIRS["models"] / name, ignore_errors=True)
+ 
+ 
+ def select(shard, n_shards, **_):
+@@ -206,7 +207,7 @@ def _launch(job, shard, n, gpu, root, cfg):
+     kwf.write_text(json.dumps(job.kw))
+     log = logs / f"auto_{job.name}.{shard}.log"
+     env = dict(os.environ, FACTINDIC_ROOT=str(root), FACTINDIC_CFG=json.dumps(cfg), CUDA_VISIBLE_DEVICES="" if gpu is None else str(gpu),
+-               PYTORCH_ALLOC_CONF="expandable_segments:True", TOKENIZERS_PARALLELISM="false", PYTHONUTF8="1",
++               PYTORCH_ALLOC_CONF="expandable_segments:True", PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True", TOKENIZERS_PARALLELISM="false", PYTHONUTF8="1",
+                PYTHONPATH=str(Path(__file__).resolve().parents[2]) + os.pathsep + os.environ.get("PYTHONPATH", ""))
+     p = subprocess.Popen([sys.executable, "-u", "-m", "factindic.parallel", job.func, str(kwf), str(shard), str(n)], env=env,
+                          stdout=open(log, "a"), stderr=subprocess.STDOUT, start_new_session=True)
+diff --git a/factindic/pipeline/human.py b/factindic/pipeline/human.py
+index 978d5ed..23d998b 100644
+--- a/factindic/pipeline/human.py
++++ b/factindic/pipeline/human.py
+@@ -130,10 +130,8 @@ def lookback_detector(labels_from="factcg", scored=None):
+     if not feats:
+         return None
+     ev = {}
+-    for f in DIRS["eval"].glob("eval_*.jsonl"):
+-        if ".shard" in f.name:
+-            continue
+-        for r in jl_read_glob(f):
++    for name in sorted({f.name.split(".")[0] for f in DIRS["eval"].glob("eval_*.jsonl")}):     # shard files included
++        for r in jl_read_glob(DIRS["eval"] / f"{name}.jsonl"):
+             ev[(r["system"], r["item"])] = r
+     X, y, groups = [], [], []
+     gen_cache = {}
+diff --git a/factindic/pipeline/stage2.py b/factindic/pipeline/stage2.py
+index 0760e5d..bfd7018 100644
+--- a/factindic/pipeline/stage2.py
++++ b/factindic/pipeline/stage2.py
+@@ -162,7 +162,7 @@ def seq2seq_gen_job(shard, n_shards, name, **_):
+             torch.cuda.synchronize(); dt = (time.perf_counter() - t) / len(batch)
+             outs = [(tok.decode(row, skip_special_tokens=True), dt) for row in g]
+         for (item, r, v), e, (s, dt) in zip(batch, enc, outs):
+-            s = s.replace(f"<2{r['lang']}>", "").strip()
++            s = s.split("</s>")[0].replace(f"<2{r['lang']}>", "").strip()     # IndicBARTSS's </s> is no special token here
+             out.add(dict(item=item, uid=r["uid"], lang=r["lang"], variant=v, system=name, summary=s,
+                          latency_s=dt, latency_mode="batch8", input_tokens=len(e),
+                          input_fertility=len(e) / max(1, W(r["variants"][v])),
+@@ -305,14 +305,14 @@ def dev_grade(system, tau=None):
+     out = JsonlAppender(path, key_fn=lambda r: r["item"])
+     todo = [g for g in gens if g["item"] not in out.done]
+     if todo:
+-        router = _dev_router()
++        router, ner = _dev_router()
+         for g in todo:
+             rec = recs[g["uid"]]
+             cl = sentence_claims(g["summary"])
+             v = router.verify(rec, g["variant"], cl) if cl else []
+             frac = sum(x["p"] >= tau for x in v) / len(v) if v else 0.0
+             sal = salient_anchors(rec["anchors"], rec["text"], rec["lang"])
+-            ra = anchor_recall_salient(anchors(g["summary"], rec["lang"]), rec["anchors"], sal, rec["text"], rec["lang"])
++            ra = anchor_recall_salient(anchors(g["summary"], rec["lang"], ner.entities(g["summary"])), rec["anchors"], sal, rec["text"], rec["lang"])
+             out.add(dict(item=g["item"], system=system, variant=g["variant"], lang=g["lang"], frac=frac,
+                          R_anchor=ra, score=frac * ra, rougeL=rouge(rec["reference"], g["summary"])["rougeL"],
+                          words=W(g["summary"])))
+@@ -331,14 +331,16 @@ def _dev_router():
+     global _ROUTER
+     if _ROUTER is None:
+         from ..mt import Translator
++        from ..ner import Tagger
+         from ..verify import MiniCheck, NativeNLI, Router
+-        _ROUTER = Router(Translator(cache_name="mt_cache_dev.jsonl"), MiniCheck(), NativeNLI())
++        # the tagger as in stage 4: without it the summary has no entity anchors and R_anchor is always about 0
++        _ROUTER = Router(Translator(cache_name="mt_cache_dev.jsonl"), MiniCheck(), NativeNLI()), Tagger(latin=False)
+     return _ROUTER
+ 
+ 
+ def release_dev_router():
+     global _ROUTER
+     if _ROUTER is not None:
+-        _ROUTER.mt.close()
++        _ROUTER[0].mt.close()
+     _ROUTER = None
+     free_gpu()
+diff --git a/factindic/verify.py b/factindic/verify.py
+index 207bae2..f97846c 100644
+--- a/factindic/verify.py
++++ b/factindic/verify.py
+@@ -66,7 +66,8 @@ class NativeNLI:
+         self.model = AutoModelForSequenceClassification.from_pretrained(MODELS["mdeberta"], dtype=torch.float32).cuda().eval()
+         self.ent = [i for i, l in self.model.config.id2label.items() if l.lower().startswith("entail")][0]
+         src = "सूरत के ज़िला अस्पताल में सोमवार को 42 मरीज़ भर्ती हुए।"
+-        hi, lo = self.score_pairs([(src, "सूरत के अस्पताल में 42 मरीज़ भर्ती हुए।"), (src, "दिल्ली में गैस रिसाव से 300 लोगों की मौत हुई।")])
++        # "in a hospital in Surat" scores 0.49 (a property of the model: this setup reproduces H1's scores, r = 0.9999)
++        hi, lo = self.score_pairs([(src, "42 मरीज़ भर्ती हुए।"), (src, "दिल्ली में गैस रिसाव से 300 लोगों की मौत हुई।")])
+         assert hi > 0.5 > lo, f"mDeBERTa sanity failed ({hi:.2f}, {lo:.2f})"
+ 
+     @_split_on_oom
+diff --git a/requirements-local.txt b/requirements-local.txt
+index fb5d3a9..d513a35 100644
+--- a/requirements-local.txt
++++ b/requirements-local.txt
+@@ -7,7 +7,7 @@ scipy==1.15.3
+ scikit-learn==1.6.1
+ statsmodels==0.14.4
+ matplotlib==3.10.0
+-protobuf==5.29.5
++protobuf==7.36.1          # sentencepiece 0.2.3 needs 7.x to read spiece.model (mT5, IndicBARTSS)
+ pyarrow==21.0.0
+ psutil
+ packaging

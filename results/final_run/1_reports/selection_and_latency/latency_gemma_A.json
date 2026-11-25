@@ -1,0 +1,9 @@
+{
+  "system": "gemma_A",
+  "n": 15,
+  "mean_s": 1.1394202271995406,
+  "p50_s": 1.0342333009975846,
+  "p90_s": 1.5099128843998186,
+  "peak_vram_gb": 4.740686848,
+  "precision": "bf16, per-layer embeddings on the CPU"
+}

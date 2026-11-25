@@ -1,0 +1,47 @@
+{
+  "alpha_base": 0.2,
+  "alpha_anchor": 0.6,
+  "beta": 0.2,
+  "grid": [
+    {
+      "grid": 0,
+      "alpha_base": 0.4,
+      "alpha_anchor": 0.9,
+      "beta": 0.2,
+      "score": 0.2972222222222222,
+      "frac": 0.8875,
+      "R_anchor": 0.3583333333333333,
+      "rougeL": 15.745176288290619
+    },
+    {
+      "grid": 1,
+      "alpha_base": 0.2,
+      "alpha_anchor": 0.6,
+      "beta": 0.2,
+      "score": 0.3166666666666666,
+      "frac": 0.9041666666666666,
+      "R_anchor": 0.35833333333333334,
+      "rougeL": 15.747338626556239
+    },
+    {
+      "grid": 2,
+      "alpha_base": 0.4,
+      "alpha_anchor": 0.9,
+      "beta": 0.0,
+      "score": 0.2625,
+      "frac": 0.8208333333333332,
+      "R_anchor": 0.3458333333333333,
+      "rougeL": 15.323402294348005
+    },
+    {
+      "grid": 3,
+      "alpha_base": 0.4,
+      "alpha_anchor": 1.2,
+      "beta": 0.4,
+      "score": 0.3,
+      "frac": 0.9041666666666666,
+      "R_anchor": 0.35,
+      "rougeL": 15.622675224340218
+    }
+  ]
+}

@@ -16,3 +16,7 @@ h1_report/working/factindic_h1/sarvam1_sft/
 h1_report/working/factindic_h1/sft_train.jsonl
 # older notebooks with the package as an encoded block: FactIndic_run_all.ipynb replaces them
 notebooks/0[1-7]*.ipynb
+# the collected run folder: models and data are too large for git
+results/final_run/5_models/
+results/final_run/6_data/
+results/final_run/7_logs/

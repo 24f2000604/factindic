@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from .. import viz
-from ..config import CFG, DIRS, H1_DIR, SYSTEMS
+from ..config import CFG, DIRS, H1_DIR
 from ..io import jl_read, jl_read_glob, json_dump, json_load
 from ..stats import bootstrap_mean, cohen_kappa, fe_ols, paired_bootstrap
 

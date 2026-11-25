@@ -9,7 +9,7 @@ same facts.
 from __future__ import annotations
 
 from ..claims import sentence_claims
-from ..config import CFG, DIRS
+from ..config import DIRS
 from ..data import load_set
 from ..io import JsonlAppender, free_gpu, jl_read_glob
 from ..metrics import compression_ratio, fact_prf, rouge
@@ -94,7 +94,6 @@ def eval_job(shard, n_shards, systems, **_):
 
 
 def bertscore_job(shard, n_shards, systems, **_):
-    import random
     from ..metrics import BertScorer
     recs = _records()
     out = JsonlAppender(DIRS["eval"] / "bertscore.jsonl", key_fn=lambda r: (r["system"], r["item"]), shard=shard)

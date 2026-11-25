@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 import unicodedata
-from collections import Counter
 
 from .text import INDIC_RE, strip_punct
 from .translit import GU_SUFFIX, gu_to_deva, trim_gu

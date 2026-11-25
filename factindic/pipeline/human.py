@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from .. import viz
-from ..claims import sentence_claims
 from ..config import CFG, DIRS
 from ..data import load_set
 from ..io import free_gpu, jl_read_glob, json_dump

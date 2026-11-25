@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import random
 
-import numpy as np
 import torch
 
 from ..config import CFG, DIRS, MODELS

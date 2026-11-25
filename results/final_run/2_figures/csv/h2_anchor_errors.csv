@@ -1,0 +1,13 @@
+lang,variant,kind,rate,group
+gu,native,numeric,0.0,Gujarati · numeric
+gu,native,entity,0.008849557522123894,Gujarati · entity
+gu,roman,numeric,0.003816793893129771,Gujarati · numeric
+gu,roman,entity,0.03625954198473282,Gujarati · entity
+gu,script_mixed,numeric,0.0,Gujarati · numeric
+gu,script_mixed,entity,0.010294117647058823,Gujarati · entity
+hi,native,numeric,0.0049261083743842365,Hindi · numeric
+hi,native,entity,0.027914614121510674,Hindi · entity
+hi,roman,numeric,0.0021551724137931034,Hindi · numeric
+hi,roman,entity,0.01293103448275862,Hindi · entity
+hi,script_mixed,numeric,0.0031545741324921135,Hindi · numeric
+hi,script_mixed,entity,0.01892744479495268,Hindi · entity

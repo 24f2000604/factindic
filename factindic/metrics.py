@@ -2,7 +2,6 @@
 rescaled IndicBERTv2 BERTScore (semantic similarity only), length / compression."""
 from __future__ import annotations
 
-import math
 import random
 
 import numpy as np
