@@ -68,12 +68,12 @@ p("Automatic summarization is useful for Indian-language news only if the summar
   "script or mix them with English, the tools that check facts are built for English, and the public training sets contain corrupt references.")
 p("This paper describes FactIndic, a four-stage pipeline for Hindi, Gujarati and their code-mixed forms. It uses open models only and costs nothing to run: "
   "all experiments ran on a free cloud GPU or on one laptop GPU with 8 GB of memory. We ask whether each stage earns its cost, under a grader that the "
-  "pipeline never sees. Four hypotheses were written down before the experiments:")
+  "pipeline never sees. Four hypotheses were written down before the experiments. Three are tested here:")
 li("**H1:** higher tokenizer fertility (tokens per word) goes with more hallucination.")
 li("**H2:** with the facts held constant, claim precision drops from native-script to script-mixed and Romanized input, and Gujarati has a higher baseline error rate than Hindi.")
-li("**H3:** a round-trip check that routes claims between a translated and a native verifier agrees better with human labels. It was planned but not evaluated, because this study has no human annotation; we make no claim about it.")
 li("**H4:** modulating context-aware decoding by anchor tokens improves numeric and entity F1 over static and adaptive decoding without raising perplexity.")
-p("H1 and H4 are not supported. H2 is supported for Romanized input only. The full pipeline is not measurably more precise than a prompt that lists the "
+p("The fourth, H3, concerns agreement between automatic verifiers and human labels. It needs human annotation, which this study does not have, so it is left to future work (Section VIII) and no claim is made about it. "
+  "H1 and H4 are not supported. H2 is supported for Romanized input only. The full pipeline is not measurably more precise than a prompt that lists the "
   "article's names, numbers and dates. Our contributions are (i) a parallel test set in three input forms with the same facts, (ii) a controlled comparison of "
   "prompting, decoding and verification stages with a held-out grader, (iii) negative results with confidence intervals, and (iv) an account of "
   "silent faults, including a GPU kernel error, that such experiments should test for.")
@@ -124,7 +124,7 @@ h2("Metrics")
 p("Claim precision is the share of summary sentences that FactCG [12] finds supported by the English translation of the *native* article, whatever the input form, so every system is graded against the same facts. FactCG never weights training data and never reranks. Claim recall is the share of source-supported reference sentences that the summary supports. "
   f"It is undefined when no reference sentence is supported, which happens for {S['gemma_A']['n'] - S['gemma_A']['n_R']} of {S['gemma_A']['n']} items (only {100 * N['refs']['grounded']:.0f}% of {N['refs']['claims']} reference sentences are supported), so we report recall and F1 on the other {S['gemma_A']['n_R']} items. "
   "Anchor precision, recall and F1 compare normalized anchors with the source and with the source-supported anchors of the reference. ROUGE [27] uses Indic tokenization; BERTScore [28] uses IndicBERT v2 [29] and is rescaled.")
-p("Intervals are 95% percentile bootstrap intervals with 1,000 resamples; pairwise differences are paired by item. Regressions have article fixed effects and standard errors clustered by article. A bootstrap p-value of zero is printed as p < 0.002. We do not correct for multiple comparisons, so isolated values near 0.05 should not be read as findings. Thresholds and samples were not changed after results were seen. Two things were decided afterwards: H3 was dropped for lack of labels (a label-free proxy had been computed; it compares the router with itself and is not reported), and recall and F1 were restricted to items where recall is defined, because the original code counted some undefined cases as zero. The restriction changes no conclusion.")
+p("Intervals are 95% percentile bootstrap intervals with 1,000 resamples; pairwise differences are paired by item. Regressions have article fixed effects and standard errors clustered by article. A bootstrap p-value of zero is printed as p < 0.002. We do not correct for multiple comparisons, so isolated values near 0.05 should not be read as findings. Thresholds and samples were not changed after results were seen. Two things were decided afterwards: H3 was moved to future work for lack of human labels (a label-free proxy had been computed; it compares the router with itself and is not reported), and recall and F1 were restricted to items where recall is defined, because the original code counted some undefined cases as zero. The restriction changes no conclusion.")
 
 h1("Results")
 h2("H1: tokenizer fertility")
@@ -209,9 +209,11 @@ li("Romanized text is rule-based and uses the same rules as the vocabulary that 
 li("H1 used 4-bit Gemma, NLLB-200 translation and an older Romanizer; the other experiments use bf16, IndicTrans2 and the corrected Romanizer. Their numbers are not directly comparable.")
 li("The sampled candidates of Stage 4 and the fine-tuned models come from single runs with one seed.")
 
-h1("Conclusion")
+h1("Conclusion and Future Work")
 p("On one laptop GPU and at no cost, a four-stage factuality pipeline for Hindi and Gujarati was not measurably more precise than a prompt with an anchor checklist. Tokenizer fertility did not explain hallucination, and anchor-aware decoding did not improve on simpler contrastive decoding. Romanized input was by far the largest source of error, about twice as costly in Gujarati as in Hindi. "
-  "Future work should target Romanized input directly, obtain human claim labels to validate the checker and to test the verification router (H3), and measure errors beyond names and numbers.")
+  "The practical advice for small open models is to list the source's anchors in the prompt and to treat Romanized input with care.")
+p("*Future work.* The first step is to test H3: whether translate-then-verify agrees less with human claim labels on Romanized than on native input, and whether the round-trip router closes part of that gap. It needs two annotators per language; the same labels would validate FactCG on this data. "
+  "The second is to work on Romanized input itself, with real user spellings and learned transliteration. The third is to measure errors beyond names and numbers.")
 h1("Code and Data")
 p("Code, summaries, per-item grades and the run report are at https://github.com/aaryavrdhanpandey-star/factindic; commit f4b74db is the code of the reported run. XL-Sum and ILSUM remain under their own licences.")
 h1("Acknowledgment")

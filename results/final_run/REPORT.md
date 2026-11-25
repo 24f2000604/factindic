@@ -14,7 +14,7 @@ Run 25 Nov 2026 21:51 – 26 Nov 01:15 on one RTX 5050 laptop (8 GB), 3 h 25 min
 | Hypothesis | Verdict | Evidence |
 |---|---|---|
 | **H2** precision drop | **Partly supported** | Romanized input: strong drop. Script-mixed: no drop. "Gujarati has higher baseline error": not supported |
-| H3 router vs human labels | **Out of scope, not evaluated** | It was planned, but needs human claim labels, and the project has no human evaluation. No claim is made about it |
+| H3 router vs human labels | **Future work** | Planned, but it needs human claim labels, which this project does not have. No claim is made about it |
 | **H4** anchor-aware CAD | **Not supported** | No gain in entity F1 or precision; numeric F1 worse on 14 pairs; perplexity not better |
 | **Full pipeline** | **Mostly null** | Better than seq2seq baselines and than Cond A on anchors; not better than the simple B1 prompt |
 

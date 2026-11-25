@@ -14,7 +14,7 @@ Full report with confidence intervals and limitations: [`results/final_run/REPOR
 |---|---|
 | H1 fertility ↔ hallucination | Not supported (see below) |
 | H2 precision drop across modalities | Partly supported: Romanized input lowers claim precision strongly, script-mixed input does not |
-| H3 router vs human labels | Planned, not evaluated: the study has no human annotation |
+| H3 router vs human labels | Future work: needs human annotation |
 | H4 anchor-aware CAD | Not supported |
 | Full pipeline | Claim precision 0.756 against 0.728 (standard prompt) and 0.752 (anchor checklist); neither difference is significant |
 
@@ -134,7 +134,7 @@ JSONL and skips finished items, so you can split any notebook across sessions.
 |---|---|---|
 | **H1** fertility ↔ hallucination | Article fixed effects, separated into within-model (script changes) and across-model (family changes) | `h1_fertility`, `h1_shift`, `h1_coefficients`, `h1_sensitivity`, `h1_shift_by_measure` |
 | **H2** precision drop across modalities | Same articles and facts in native, script-mixed and Romanized form; paired bootstrap and FE-OLS; Gujarati vs Hindi | `h2_precision_by_variant`, `h2_anchor_errors` |
-| **H3** translate-then-verify vs router (**planned, not evaluated**) | Cohen's κ and macro-F1 against human labels by modality, with τ tuned on dev; a label-free oracle-source proxy | `h3_agreement`, `h3_proxy_oracle_agreement` |
+| **H3** translate-then-verify vs router (**future work**, needs human labels) | Cohen's κ and macro-F1 against human labels by modality, with τ tuned on dev; a label-free oracle-source proxy | `h3_agreement`, `h3_proxy_oracle_agreement` |
 | **H4** anchor-aware CAD | Numeric and entity anchor F1 plus perplexity vs static CAD, AdaCAD, DoLa and greedy (paired bootstrap) | `h4_numeric_f1`, `h4_entity_f1`, `h4_perplexity` |
 | **Pipeline** | Stage-by-stage F1 ladder; precision–recall (drop-only collapse vs reranking); latency; router route share | `pipeline_ladder_*`, `pipeline_precision_recall`, `pipeline_latency`, `stage4_route_share` |
 | **Data** | Sanitation vs the published audit; faithfulness-score distribution; CMI per modality | `data_sanitation_*`, `data_faithfulness_scores`, `data_cmi` |

@@ -3,12 +3,11 @@
 <div class="col" style="gap:30px">
 <p class="lead"><b>H1, not supported.</b> Tokens per word do not explain hallucination.</p>
 <p class="lead"><b>H2, partly supported.</b> Romanized input costs 0.18 precision in Hindi and 0.43 in Gujarati with B1; mixing in English nouns costs nothing measurable.</p>
-<p class="lead"><b>H3, not evaluated.</b> It needs human labels.</p>
 <p class="lead"><b>H4, not supported.</b> Anchor-aware decoding does not beat simpler decoding.</p>
 <p class="lead"><b>Pipeline.</b> All four stages are not measurably more precise than a prompt with an anchor checklist, at ten times the time.</p>
 </div>
 <div style="flex:1"></div>
-<p class="lead"><b>Next:</b> work on Romanized input itself, and get human labels to check the checker.</p>
+<p class="lead"><b>Future work:</b> H3, the verification router against human labels; and Romanized input itself.</p>
 <p class="lead" style="margin-top:24px;font-size:28px">Code and results: github.com/aaryavrdhanpandey-star/factindic</p>
 <aside>Close with the practical advice: for a small open model, list the source’s names, numbers and dates in the prompt, and convert Romanized input carefully before anything else. Then take questions.</aside>
 </section>
