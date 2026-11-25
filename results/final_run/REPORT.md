@@ -68,6 +68,8 @@ be ranked against the 360-item rows.** "No Roman" leaves out the Romanized varia
 - **SFT:** lowest of the Gemma systems overall because it copies the input script (all 120 Romanized test summaries are in Latin script). Without Romanized input its
   precision (0.930) is the highest here, but ROUGE-L is the lowest of the Gemma systems: it states less.
   This subset comparison was made after seeing the results.
+- The pairwise comparisons below are the pre-specified tests on **all 440 items** (test bed plus natural code-mixed), not only the 360 in the table. On the 360
+  test-bed items alone: anchor F1 FactIndic − A = +0.043 [0.014, 0.076], B1 − A = +0.022 [−0.009, 0.055] (not significant), and precision differences stay not significant.
 - **FactIndic vs Cond A:** precision +0.024 [−0.010, 0.058], not significant; anchor F1 +0.055 [0.027, 0.084], p < 0.002.
 - **FactIndic vs B1:** precision +0.008 [−0.024, 0.042], anchor F1 +0.015 [−0.009, 0.040]: no detectable gain from Stages 3–4.
 - **B1 vs A:** anchor F1 +0.034 [0.006, 0.062]; precision +0.015 [−0.022, 0.052].
