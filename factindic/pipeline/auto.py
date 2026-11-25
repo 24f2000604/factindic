@@ -314,11 +314,15 @@ def smoke(t0, n_gpu):
     jobs = plan(smoke=True) + [Job("final", P + "auto:final", after=("bertscore",), cpu=True)]
     st = run_plan(jobs, root, SMOKE_CFG, t0, n_gpu, timeout_min=25 if IS_KAGGLE else 60, retries=0, label="smoke ")
     bad = [k for k, v in st.items() if v != "ok"]
+    for f in sorted((root / "outputs").glob("*.jsonl")):     # what the systems actually wrote
+        rows = [r for r in jl_read_glob(f) if "summary" in r]
+        if rows:
+            print(f"  {f.name}: {sum(not r['summary'].strip() for r in rows)} of {len(rows)} empty :: {rows[-1]['summary'][:110]}")
     print("SMOKE TEST:", "all jobs passed" if not bad else f"problems in {bad}", flush=True)
     print(_tail(root / "logs" / "auto_final.0.log", 12))
     core = [j.name for j in jobs if j.core and st.get(j.name) != "ok"]
-    if core:
-        raise RuntimeError(f"smoke test: essential jobs failed: {core}. Send the messages above before starting the long run.")
+    if set(core) & {"dev_B1", "gen_B1", "anchor_cad_dola", "samples"}:     # later steps can be rerun on finished outputs
+        raise RuntimeError(f"smoke test: the generator failed ({core}). Send the messages above before the long run.")
     return st
 
 
@@ -350,7 +354,7 @@ def part2_smoke():
     shutil.rmtree(SMOKE, ignore_errors=True)
 
 
-def part3_full(soft_h=6.25, hard_h=8.25):
+def part3_full(soft_h=3.25, hard_h=4.5):
     """Notebook 01 scores + 02-06 + analysis. Hours count from the import of this module."""
     t0, n = START, _gpus()
     st = run_plan(plan(smoke=False), ROOT, {}, t0, n, soft_h, hard_h)

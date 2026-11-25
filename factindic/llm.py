@@ -44,12 +44,21 @@ def _trials(model_id):
             return [("bf16, per-layer embeddings on the CPU", "gemma_split")]
         return [("4bit-nf4/bf16", dict(quantization_config=_bnb4(torch.bfloat16), dtype=torch.bfloat16))]
     if "gemma" in model_id.lower():   # bf16-trained; fp16 compute overflows → fp32 compute (H1-proven)
-        return [("4bit-nf4/fp16-storage/fp32-compute", dict(quantization_config=_bnb4(torch.float32), dtype=torch.float16)),
-                ("4bit-nf4/fp32", dict(quantization_config=_bnb4(torch.float32), dtype=torch.float32))]
+        return [("4bit-nf4/fp32, per-layer embeddings fp16", dict(quantization_config=_bnb4(torch.float32), dtype=torch.float16))]
     if "llama" in model_id.lower() or "qwen" in model_id.lower():
         return [("fp16", dict(dtype=torch.float16)),
                 ("4bit-nf4/fp32-compute", dict(quantization_config=_bnb4(torch.float32), dtype=torch.float16))]
     return [("fp32", dict(dtype=torch.float32))]
+
+
+def _fp32_stream(model):
+    """bitsandbytes layers compute in fp32 but hand back the dtype they were given. In fp16 Gemma's residual
+    stream overflows in padded batches (NaN), so everything except the per-layer embedding table becomes fp32."""
+    for n, p in model.named_parameters():
+        if p.dtype == torch.float16 and p.__class__.__name__ != "Params4bit" and \
+                not any(x in n for x in ("embed_tokens_per_layer", "vision", "audio")):
+            p.data = p.data.to(torch.float32)
+    torch.cuda.empty_cache()
 
 
 def _gemma_split(model_id, **kw):
@@ -117,6 +126,8 @@ def load_causal(model_id, adapter=None, attn_implementation=None, trials=None):
                 last = e
                 print(f"{cls.__name__} [{desc}] failed: {repr(e)[:300]}", flush=True)
                 continue
+            if "gemma" in model_id.lower() and not split:
+                _fp32_stream(model)
             if adapter:
                 from peft import PeftModel
                 model = PeftModel.from_pretrained(model, adapter)
@@ -162,12 +173,36 @@ def generate(model, tok, texts, max_new_tokens=160, do_sample=False, num_return_
     return a[0] + b[0], a[1] + b[1], a[2] + b[2]
 
 
+def _guard(stop, pad):
+    """Logits processor: a finished row may hold anything (it only emits padding), but a non-finite score in a
+    row that is still writing must not pass silently (greedy search would turn it into an empty summary)."""
+    from transformers import LogitsProcessor
+
+    class Guard(LogitsProcessor):
+        n0 = None
+
+        def __call__(self, ids, scores):
+            self.n0 = self.n0 or ids.shape[1]
+            bad = torch.isnan(scores).any(-1) | torch.isposinf(scores).any(-1)
+            if bool(bad.any()):
+                done = torch.isin(ids[:, self.n0:], torch.tensor([*stop, pad], device=ids.device)).any(-1)
+                if bool((bad & ~done).any()):
+                    raise RuntimeError("non-finite logits in an unfinished row")
+                scores = scores.clone()
+                scores[bad] = float("-inf")
+                scores[bad, pad] = 0.0
+            return scores
+    return Guard()
+
+
 def _generate(model, tok, texts, max_new_tokens, do_sample, num_return_sequences, temperature, top_p, seed):
+    from transformers import LogitsProcessorList
     enc = tok(texts, return_tensors="pt", padding=True, add_special_tokens=False).to(DEV)
     if seed is not None:
         torch.manual_seed(seed)
     kw = dict(max_new_tokens=max_new_tokens, do_sample=do_sample, pad_token_id=tok.pad_token_id,
-              num_return_sequences=num_return_sequences, eos_token_id=_eos(model, tok))
+              num_return_sequences=num_return_sequences, eos_token_id=_eos(model, tok),
+              logits_processor=LogitsProcessorList([_guard(_eos(model, tok), tok.pad_token_id)]))
     if do_sample:
         kw.update(temperature=temperature, top_p=top_p, top_k=0)
     else:

@@ -13,12 +13,17 @@ The user wants you to run and watch everything on this machine: Lenovo LOQ, RTX 
   The laptop changes (`IS_LOCAL`, `_gemma_split`) have not run either. Expect first-run bugs and fix them.
 - `notebooks/FactIndic_run_all.ipynb` is the same code for Kaggle (fallback and the file the teacher reads).
 
+- The Kaggle smoke test of 25 Nov ran 22 of 27 job types cleanly. Fixed afterwards, not yet re-run: NaN logits in batched
+  fp16 Gemma (now fp32 stream on T4, bf16 here, plus `llm._guard`), a too strict mDeBERTa check, mT5 memory, `d["empty"]`
+  in `analysis.main_table`. H1 is not affected (batch size 1; 199 of 200 Gemma summaries end properly), but H1's Gemma
+  *latency* is inflated (generation seems to have run on after the end token in 82 of 200), so do not report it.
+
 ## Run it
 1. Linux or WSL2: `bash setup_local.sh`. Native Windows: `setup_local.ps1` (IndicTrans2 has no Windows wheel, so it
    uses NLLB-200: set `FACTINDIC_MT=nllb` for every command). Under WSL2 with 16 GB RAM, put `memory=12GB` and `swap=16GB`
    in `%UserProfile%\.wslconfig`, run `wsl --shutdown`, and clone inside the Linux home, not under `/mnt/c`.
    Laptop plugged in, sleep disabled.
-2. `hf auth login` (the user types the token). The account needs IndicTrans2, IndicNER, ILSUM; Llama is optional.
+2. `hf auth login` (the user types the token). The account needs IndicTrans2, IndicNER; Llama is optional.
 3. `python run_local.py doctor`, then `download` (~30 GB), `data`, `smoke`, `full`. Run the long ones in the background
    (`... > runs/full.log 2>&1`) and check `python run_local.py status` every 10–15 minutes.
 4. `python run_local.py package` → `results/factindic_final.zip`.

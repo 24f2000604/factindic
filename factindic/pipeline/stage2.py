@@ -78,11 +78,11 @@ def train_seq2seq(name, epochs=None, lr=None, bs=8):
         data.append((s, t))
     amp = name == "indicbartss" and not IS_LOCAL     # fp16 with loss scaling; mT5 overflows in fp16 → fp32
     dtype = torch.bfloat16 if IS_LOCAL else torch.float16
-    if IS_LOCAL and name == "mt5":       # Adam's two fp32 copies of 580 M weights do not fit in 8 GB
+    if name == "mt5":                    # Adam's two fp32 copies of 580 M weights do not fit
         opt = torch.optim.Adafactor(model.parameters(), lr=lr, weight_decay=0.01)
     else:
         opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=0.01)
-    if IS_LOCAL:
+    if IS_LOCAL or name == "mt5":
         model.gradient_checkpointing_enable()
         model.config.use_cache = False
     steps = epochs * math.ceil(len(data) / bs)
@@ -103,7 +103,7 @@ def train_seq2seq(name, epochs=None, lr=None, bs=8):
             for k, (s, t) in enumerate(batch):
                 src[k, :len(s)] = torch.tensor(s); att[k, :len(s)] = 1; tgt[k, :len(t)] = torch.tensor(t)
             src, att, tgt = src.cuda(), att.cuda(), tgt.cuda()
-            micro, n_tok = (2 if IS_LOCAL else bs), (tgt != pad).sum()
+            micro, n_tok = (2 if IS_LOCAL else 4 if name == "mt5" else bs), (tgt != pad).sum()
             for m in range(0, len(batch), micro):            # weighted by tokens, so the size of micro changes nothing
                 s, a, y = src[m:m + micro], att[m:m + micro], tgt[m:m + micro]
                 with torch.autocast("cuda", dtype=dtype, enabled=amp or IS_LOCAL):
