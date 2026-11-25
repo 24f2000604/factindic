@@ -1,0 +1,17 @@
+<section id="systems">
+<h2>Claim precision: the model matters more than the method</h2>
+<div class="bars">
+<div class="bar"><p class="name">mT5-base</p><div class="fill base" style="width:504px;height:42px"></div><p class="val">0.47</p></div>
+<div class="bar"><p class="name">IndicBARTSS</p><div class="fill base" style="width:553px;height:42px"></div><p class="val">0.51</p></div>
+<div class="bar"><p class="name">Llama-3.2-3B, standard</p><div class="fill base" style="width:636px;height:42px"></div><p class="val">0.59</p></div>
+<div class="bar"><p class="name">Gemma, fine-tuned</p><div class="fill" style="width:708px;height:42px"></div><p class="val">0.66</p></div>
+<div class="bar"><p class="name">Gemma B2, densify</p><div class="fill" style="width:761px;height:42px"></div><p class="val">0.70</p></div>
+<div class="bar"><p class="name">B1 + contrastive decoding</p><div class="fill" style="width:784px;height:42px"></div><p class="val">0.72</p></div>
+<div class="bar"><p class="name">Gemma A, standard</p><div class="fill" style="width:786px;height:42px"></div><p class="val">0.73</p></div>
+<div class="bar"><p class="name">Gemma B3, verb hint</p><div class="fill" style="width:796px;height:42px"></div><p class="val">0.74</p></div>
+<div class="bar"><p class="name">Gemma B1, anchors</p><div class="fill" style="width:812px;height:42px"></div><p class="val">0.75</p></div>
+<div class="bar"><p class="name">FactIndic, full pipeline</p><div class="fill hot" style="width:816px;height:42px"></div><p class="val">0.76</p></div>
+</div>
+<p class="foot">FactCG precision, 360 items. Grey: other models; orange: full pipeline. Drop-only repair not shown (14% empty)</p><div class="page"></div>
+<aside>The last five bars from contrastive decoding to FactIndic are close together and their intervals overlap. Gemma’s lead over the baselines holds without Romanized items too. Densifying, B2, finds more names but lowers precision by 0.048, p = 0.01. Fine-tuning copies the input script; without Romanized items its precision is 0.93, a comparison we made after seeing the results, with the lowest ROUGE of the Gemma systems. Chain-of-Verification was run on 60 items only.</aside>
+</section>

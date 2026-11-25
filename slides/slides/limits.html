@@ -1,0 +1,14 @@
+<section id="limits">
+<h2>What these results cannot tell you</h2>
+<table style="font-size:32px">
+<tr><th style="width:30%">Limit</th><th style="width:70%">Consequence</th></tr>
+<tr><td>No human evaluation</td><td>All precision rests on one automatic grader that reads machine translations</td></tr>
+<tr><td>Small test set</td><td>60 articles per language; moderate effects cannot be excluded</td></tr>
+<tr><td>Claim recall near zero</td><td>Defined for 38% of items, so claim F1 is nearly uninformative</td></tr>
+<tr><td>Rule-based Romanization</td><td>Easier than real user spelling; real input is likely to do worse</td></tr>
+<tr><td>Mild code-mixing</td><td>Mixing index about 3 in the test bed; 4.1 (Hindi) and 6.5 (Gujarati) in natural articles</td></tr>
+<tr><td>One seed, one run</td><td>No estimate of run-to-run variation</td></tr>
+</table>
+<div class="page"></div>
+<aside>The most important one is the first. In H1, two automatic verifiers agreed only weakly, kappa 0.15, which is a warning against trusting any single one. Recall and F1 were restricted to items where recall is defined, and this was decided after seeing the results; it changes no conclusion.</aside>
+</section>

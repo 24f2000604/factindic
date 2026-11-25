@@ -1,0 +1,12 @@
+<section id="setup">
+<h2>The test: same facts, three forms, an independent grader</h2>
+<div class="row">
+<div class="card"><p class="num">360</p><h3>Test items</h3><p>60 Hindi and 60 Gujarati articles, each native, script-mixed and Romanized.</p></div>
+<div class="card"><p class="num">80</p><h3>Natural articles</h3><p>Really code-mixed ILSUM news, 40 per language. 440 items in all.</p></div>
+<div class="card"><p class="num">11</p><h3>Main systems</h3><p>Two fine-tuned baselines, Llama, five Gemma variants, decoding, drop-only repair, FactIndic.</p></div>
+<div class="card"><p class="num">1</p><h3>Held-out grader</h3><p>FactCG checks every summary sentence. It never trains or reranks.</p></div>
+</div>
+<p class="take">Every system is graded against the native article, whatever form it read. Differences are paired by item, with 95% bootstrap intervals.</p>
+<div class="page"></div>
+<aside>Sizes are smaller than the plan, which asked for 250 articles per language. A separate comparison of five decoders uses 240 items, and Chain-of-Verification uses 60. The natural code-mixed articles average a mixing index of 4.1 for Hindi and 6.5 for Gujarati; the plan asked for 8, which too few clean articles reach.</aside>
+</section>

@@ -1,0 +1,22 @@
+<section id="h2">
+<h2>H2, partly supported: Romanized input is the real problem</h2>
+<div class="row" style="gap:64px">
+<div class="panel2"><h3>Hindi</h3>
+<div class="bars">
+<div class="bar"><p class="name">Native</p><div class="fill" style="width:396px"></div><p class="val">0.90</p></div>
+<div class="bar"><p class="name">Script-mixed</p><div class="fill" style="width:390px"></div><p class="val">0.89</p></div>
+<div class="bar"><p class="name">Romanized</p><div class="fill hot" style="width:315px"></div><p class="val">0.72</p></div>
+</div>
+<p class="small">Native to Romanized: −0.18 [−0.31, −0.08]</p></div>
+<div class="panel2"><h3>Gujarati</h3>
+<div class="bars">
+<div class="bar"><p class="name">Native</p><div class="fill" style="width:355px"></div><p class="val">0.81</p></div>
+<div class="bar"><p class="name">Script-mixed</p><div class="fill" style="width:364px"></div><p class="val">0.83</p></div>
+<div class="bar"><p class="name">Romanized</p><div class="fill hot" style="width:165px"></div><p class="val">0.38</p></div>
+</div>
+<p class="small">Native to Romanized: −0.43 [−0.56, −0.28]</p></div>
+</div>
+<p class="take">Swapping nouns for English words costs nothing measurable. On native input, Gujarati is not measurably worse than Hindi.</p>
+<p class="foot">Claim precision of Gemma B1 (FactCG), 60 articles per bar · brackets: 95% interval</p><div class="page"></div>
+<aside>Gemma A and FactIndic show the same pattern. The loss is about twice as large in Gujarati for these systems, but we did not test that difference formally. The script-mixed texts are mild: a mixing index of about 3. The fine-tuned models answer Romanized input in Latin script, 120 of 120 times, so their Romanized scores are not comparable.</aside>
+</section>

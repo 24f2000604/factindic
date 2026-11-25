@@ -1,0 +1,14 @@
+<section id="h4">
+<h2>H4, not supported: anchor-aware decoding adds no measurable gain</h2>
+<table style="font-size:32px">
+<tr><th style="width:36%">Decoder, same 240 items</th><th style="width:16%">Precision</th><th style="width:16%">Entity F1</th><th style="width:16%">Perplexity</th><th style="width:16%">Seconds</th></tr>
+<tr><td>Greedy (prompt B1)</td><td>0.761</td><td>0.465</td><td>1.118</td><td>0.38</td></tr>
+<tr><td>Static CAD</td><td>0.741</td><td>0.472</td><td>1.203</td><td>0.68</td></tr>
+<tr><td>AdaCAD</td><td>0.726</td><td>0.476</td><td>1.184</td><td>0.68</td></tr>
+<tr><td>DoLa</td><td>0.766</td><td>0.465</td><td>1.209</td><td>0.52</td></tr>
+<tr style="background:#f6e3d6"><td>Anchor-CAD + DoLa (ours)</td><td>0.756</td><td>0.469</td><td>1.214</td><td>0.85</td></tr>
+</table>
+<p class="take">Entity F1 against static CAD: +0.009 [−0.017, +0.037]. Plain greedy decoding shows no loss of precision and is twice as fast.</p>
+<p class="foot">Number F1 is lower than static CAD and AdaCAD, but rests on 14 items · perplexity favours greedy by construction</p><div class="page"></div>
+<aside>The idea was to trust the document more on tokens that belong to names and numbers. Names and numbers are already almost always right in Gemma’s output: anchor precision is 0.96 to 0.99. So there is little left for this method to correct.</aside>
+</section>

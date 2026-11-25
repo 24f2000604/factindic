@@ -1,0 +1,11 @@
+<section id="faults">
+<h2>Three silent faults, found by reading outputs</h2>
+<div class="row big">
+<div class="card"><h3>A GPU kernel was wrong</h3><p>PyTorch’s memory-efficient attention gave wrong Gemma-4 results at some text lengths (513, 673 and 1,089 tokens). We switched it off and repeated the whole run.</p></div>
+<div class="card"><h3>A score was always zero</h3><p>The development score computed anchor recall without names, so the choice of prompt would have rested on ROUGE alone.</p></div>
+<div class="card"><h3>Hidden end markers</h3><p>A library padded one baseline’s summaries with end-of-text markers that were never removed.</p></div>
+</div>
+<p class="take">None of them raised an error. A clean job log is not evidence that the numbers are right.</p>
+<div class="page"></div>
+<aside>The first full run was thrown away after the first fault. The second was caught in the smoke test, when every score came out as exactly zero. The third was caught by reading summaries before that baseline was graded.</aside>
+</section>

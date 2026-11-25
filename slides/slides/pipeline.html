@@ -1,0 +1,12 @@
+<section id="pipeline">
+<h2>The pipeline: four stages around one small model</h2>
+<div class="row big">
+<div class="card"><p class="eyebrow">Stage 1</p><h3>Anchors</h3><p>Normalize the text. Find names, numbers and dates, with keys that match across scripts.</p></div>
+<div class="card"><p class="eyebrow">Stage 2</p><h3>Prompt</h3><p>Gemma-4 E2B with factuality rules and the anchor checklist (prompt B1, chosen on dev data).</p></div>
+<div class="card"><p class="eyebrow">Stage 3</p><h3>Decode</h3><p>One candidate from anchor-aware contrastive decoding, plus four samples.</p></div>
+<div class="card"><p class="eyebrow">Stage 4</p><h3>Verify</h3><p>Check each sentence, pick the best candidate, remove unsupported sentences once.</p></div>
+</div>
+<p class="take">Verification: if a claim’s names and numbers survive translation, MiniCheck scores the English; otherwise a native-language NLI model scores the original.</p>
+<p class="foot">Everything runs on one 8 GB laptop GPU with open models; no paid service was used in the experiments</p><div class="page"></div>
+<aside>The summary is always in the native script of the matrix language. Gemma-4 became the backbone because H1 failed and Sarvam-1 hallucinated 18 points more. Contrastive decoding means: prefer tokens that the document makes more likely.</aside>
+</section>

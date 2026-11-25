@@ -1,0 +1,12 @@
+<section id="h1">
+<h2>H1, not supported: token counts do not explain hallucination</h2>
+<table style="font-size:32px">
+<tr><th style="width:46%">Effect of tokens per word on hallucination rate</th><th style="width:27%">All three models</th><th style="width:27%">Without Llama</th></tr>
+<tr><td>Within a model (gate test)</td><td>−0.022, p = 0.96</td><td>+0.106, p = 0.03</td></tr>
+<tr><td>Across models (gate test)</td><td>+0.018, p = 0.07</td><td>+0.066, p = 0.27</td></tr>
+<tr><td>Within a model, script held fixed</td><td>−0.020, p = 0.87</td><td>−0.107, p = 0.82</td></tr>
+</table>
+<p class="take">Counterexample: Romanizing Gujarati cuts Llama’s tokens per word from 9.8 to 2.5, and its hallucination rate rises from 0.49 to 0.77.</p>
+<p class="foot">594 summaries of 100 other articles · p-values one-sided for a positive effect</p><div class="page"></div>
+<aside>The gate needed a positive effect in both of the first two rows. The one positive result, without Llama, disappears when the script is held fixed, so it is a Romanization effect. H1 used 4-bit models and another translator, so its numbers are not comparable with the later ones.</aside>
+</section>

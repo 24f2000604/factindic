@@ -197,7 +197,7 @@ p(f"FactIndic takes {S['factindic']['latency']:.1f} s per summary against {S['ge
 h1("Discussion")
 p("*Romanization is the problem worth solving.* It is the only large effect we find, and none of our interventions removes it. The anchors of Romanized test items came from the aligned native article, which a deployed system does not have; real Romanized input is likely to do worse.")
 p("*A checklist goes a long way.* Listing the source's names, numbers and dates costs almost nothing and gives most of what the pipeline gives. Anchor precision is already 0.96 to 0.99 for every Gemma system, which leaves decoding methods that protect anchors little to correct. We did not classify the remaining errors; an anchor list cannot catch wrong relations between correct names.")
-p("*Silent faults.* Three could have distorted our conclusions. PyTorch's memory-efficient attention kernel returned wrong Gemma-4 logits on our GPU at certain sequence lengths (513, 673 and 1,089 among those tested; errors of 11 to 23), and padded batches produced empty or broken summaries; we disabled it, discarded the first run and repeated it. "
+p("*Silent faults.* Three could have distorted our conclusions. PyTorch's memory-efficient attention kernel returned wrong Gemma-4 logits on our GPU at certain sequence lengths (513, 673 and 1,089 among those tested; errors of 11 to 23), so batches padded to such a length produced empty or broken summaries; we disabled it, discarded the first run and repeated it. "
   "The development score computed anchor recall without entities, which made it zero for every system and left the choice of prompt to ROUGE. A library filled finished beams with end-of-sequence markers that a tokenizer did not strip, which would have added text to one baseline's summaries. All three were found by reading outputs, not from error messages.")
 
 h1("Limitations")
@@ -213,7 +213,7 @@ h1("Conclusion")
 p("On one laptop GPU and at no cost, a four-stage factuality pipeline for Hindi and Gujarati was not measurably more precise than a prompt with an anchor checklist. Tokenizer fertility did not explain hallucination, and anchor-aware decoding did not improve on simpler contrastive decoding. Romanized input was by far the largest source of error, about twice as costly in Gujarati as in Hindi. "
   "Future work should target Romanized input directly, obtain human claim labels to validate the checker and to test the verification router (H3), and measure errors beyond names and numbers.")
 h1("Code and Data")
-p("Code, summaries, per-item grades and the run report are at https://github.com/aaryavrdhanpandey-star/factindic. XL-Sum and ILSUM remain under their own licences.")
+p("Code, summaries, per-item grades and the run report are at https://github.com/aaryavrdhanpandey-star/factindic; commit f4b74db is the code of the reported run. XL-Sum and ILSUM remain under their own licences.")
 h1("Acknowledgment")
 p("Claude Code (Anthropic) was used to write code, run the experiments and draft this manuscript. No paid model was used in the experiments. [Authors: confirm this statement and describe your own review.]")
 

@@ -1,0 +1,15 @@
+<section id="full">
+<h2>The full pipeline: ten times the time, no measurable gain over the checklist</h2>
+<div class="row">
+<div class="card"><p class="num">0.728</p><h3>Standard prompt</h3><p>0.33 s per summary</p></div>
+<div class="card"><p class="num">0.752</p><h3>Anchor checklist (B1)</h3><p>0.38 s per summary</p></div>
+<div class="card hot"><p class="num">0.756</p><h3>Full pipeline</h3><p>4.0 s per summary</p></div>
+</div>
+<table style="margin-top:44px">
+<tr><th style="width:46%">FactIndic minus …</th><th style="width:27%">Claim precision</th><th style="width:27%">Anchor F1</th></tr>
+<tr><td>Standard prompt</td><td>+0.024 [−0.010, +0.058]</td><td>+0.055 [+0.027, +0.084]</td></tr>
+<tr><td>Anchor checklist (B1)</td><td>+0.008 [−0.024, +0.042]</td><td>+0.015 [−0.009, +0.040]</td></tr>
+</table>
+<p class="foot">Large numbers: 360 test items. Table: pre-specified tests on all 440 items, 95% intervals. Seconds: batched</p><div class="page"></div>
+<aside>The only significant gain is in anchor F1 over the standard prompt, and the checklist prompt gives most of it. Against drop-only repair, FactIndic has higher anchor F1, plus 0.059, at a precision that is not significantly different; drop-only leaves 14 percent of summaries empty. Claim recall and F1 are defined on only 135 of 360 items, so we do not rank by them.</aside>
+</section>
