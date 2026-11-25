@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.venv/
+.it2_env*
+runs/
+factindic_out/
+.env
+*.token
+*.zip
+!inputs/notebook01_v2.zip
+!factindic_inputs.zip
+!results/factindic_final.zip
+results/factindic/
+# large or regenerated H1 files (adapter weights, training text)
+h1_report/working/factindic_h1/sarvam1_sft/
+h1_report/working/factindic_h1/sft_train.jsonl
+# older notebooks with the package as an encoded block: FactIndic_run_all.ipynb replaces them
+notebooks/0[1-7]*.ipynb

@@ -1,0 +1,3 @@
+{"model": "sarvam1_sft", "hf": "sarvamai/sarvam-1", "precision": "fp32 weights, fp16 autocast"}
+{"model": "gemma4_e2b", "hf": "google/gemma-4-E2B-it", "precision": "4bit-nf4 / fp16 storage / fp32 compute"}
+{"model": "llama32_3b", "hf": "meta-llama/Llama-3.2-3B-Instruct", "precision": "fp16"}

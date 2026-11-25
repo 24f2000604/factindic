@@ -1,0 +1,20 @@
+# Main environment for notebooks 01-07 (Python 3.11+; checked against Kaggle/Colab Python 3.13).
+# transformers / huggingface_hub are the versions proven in the H1 run. torch, numpy, pandas, pyarrow,
+# scipy, scikit-learn, statsmodels, matplotlib and protobuf come from the Kaggle/Colab image on purpose:
+# replacing them under a running kernel breaks compiled packages.
+transformers==5.24.0
+huggingface_hub==1.33.0
+tokenizers==0.23.3
+safetensors==0.8.0
+accelerate==1.16.0
+peft==0.22.0
+datasets==4.8.5
+bitsandbytes==0.50.2
+sentencepiece==0.2.3
+indic-nlp-library==0.92
+indic-transliteration==2.3.82
+rouge-score==0.1.2
+rapidfuzz==3.14.6
+wordfreq==3.1.1
+nltk==3.9.1
+tabulate==0.9.0
