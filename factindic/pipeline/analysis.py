@@ -66,7 +66,7 @@ METRICS = ["P_fact", "R_fact", "F1_fact", "P_anchor", "R_anchor", "F1_anchor", "
 def main_table(ev):
     rows = []
     for (s, lang, v), d in ev.groupby(["system", "lang", "variant"]):
-        r = dict(system=s, label=LABEL.get(s, s), lang=lang, variant=v, n=len(d), empty_rate=float(d.empty.mean()))
+        r = dict(system=s, label=LABEL.get(s, s), lang=lang, variant=v, n=len(d), empty_rate=float(d["empty"].mean()))
         for m in METRICS:
             if m in d:
                 r[m] = float(d[m].astype(float).mean())

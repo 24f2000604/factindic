@@ -216,9 +216,9 @@ RUN_ALL = dict(
     file="FactIndic_run_all.ipynb", title="The whole project in one notebook (01–06)",
     preflight='mt=True, required=("it2", "gemma", "indicner"), optional=("llama", "indicbartss", "indicbert"), need_data=False',
     inputs="the `factindic_inputs` dataset (H1 results and training-pool scores; data only)",
-    time="~6.5–7.5 h, stops by itself after 8 h 15 of work",
+    time="stops by itself after 4.5 h of work, then runs the analysis",
     body="Use **Save Version → Save & Run All (Commit)**; the page can be closed. Part 1 builds the data (notebook 01), "
-         "Part 2 tests every step on 4 articles and prints `SMOKE TEST: …` (about 1 h after the start), Part 3 runs 01's scores and "
+         "Part 2 tests every step on 4 articles and prints `SMOKE TEST: …` (about 40 min after the start), Part 3 runs 01's scores and "
          "02–06. Failed jobs are retried and skipped, optional ones are dropped if time runs short, and the analysis always runs.",
     cells=[
         ("md", "## Part 1. Data: sanitation, testbed, anchors, training pool (notebook 01)"),
@@ -226,7 +226,7 @@ RUN_ALL = dict(
         ("md", "## Part 2. Smoke test of every step"),
         ("code", "auto.part2_smoke()"),
         ("md", "## Part 3. Faithfulness weights, baselines, prompting, SFT, decoding, verification, evaluation (01–06)"),
-        ("code", "status = auto.part3_full()\nstatus"),
+        ("code", "# optional jobs are dropped after soft_h hours, everything stops after hard_h hours, then the analysis runs\nstatus = auto.part3_full(soft_h=3.25, hard_h=4.5)\nstatus"),
         ("md", "## Part 4. Results and figures"),
         ("code", "import pandas as pd\nf = DIRS['eval'] / 'main_table.csv'\n"
                  "if f.exists():\n    t = pd.read_csv(f)\n"

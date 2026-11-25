@@ -66,8 +66,10 @@ class NativeNLI:
         self.model = AutoModelForSequenceClassification.from_pretrained(MODELS["mdeberta"], dtype=torch.float32).cuda().eval()
         self.ent = [i for i, l in self.model.config.id2label.items() if l.lower().startswith("entail")][0]
         src = "सूरत के ज़िला अस्पताल में सोमवार को 42 मरीज़ भर्ती हुए।"
-        hi, lo = self.score_pairs([(src, "सूरत के अस्पताल में 42 मरीज़ भर्ती हुए।"), (src, "दिल्ली में गैस रिसाव से 300 लोगों की मौत हुई।")])
-        assert hi > 0.5 > lo, f"mDeBERTa sanity failed ({hi:.2f}, {lo:.2f})"
+        same, hi, lo = self.score_pairs([(src, src), (src, "सूरत के अस्पताल में 42 मरीज़ भर्ती हुए।"),
+                                         (src, "दिल्ली में गैस रिसाव से 300 लोगों की मौत हुई।")])
+        print(f"mDeBERTa check: same {same:.2f}, paraphrase {hi:.2f}, unrelated {lo:.2f}", flush=True)
+        assert min(same, hi) > lo + 0.2, f"mDeBERTa sanity failed ({same:.2f}, {hi:.2f}, {lo:.2f})"
 
     @_split_on_oom
     @torch.no_grad()

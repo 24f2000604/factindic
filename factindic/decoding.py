@@ -141,6 +141,8 @@ def _contrastive_generate(model, tok, ctx_texts, unc_texts, anchor_sets, method,
     n_steps = torch.zeros(B, device=DEV)
     pad = tok.pad_token_id
     for t in range(max_new_tokens):
+        if bool((~torch.isfinite(out_c.logits[:, -1]).all(-1) & ~finished).any()):
+            raise RuntimeError("non-finite logits in an unfinished row")
         logp_c = F.log_softmax(out_c.logits[:, -1].float(), -1)
         p_c = logp_c.exp()
         score = logp_c.clone()
