@@ -1,0 +1,6 @@
+# added to the project environment (.venv)
+fastapi==0.165.0
+uvicorn==0.54.0
+python-multipart==0.0.34
+pypdf==7.1.1
+python-docx==1.2.0

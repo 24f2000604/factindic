@@ -1,0 +1,3 @@
+# own environment (.venv_ui): Streamlit needs an older protobuf than the model environment
+streamlit==1.67.0
+requests

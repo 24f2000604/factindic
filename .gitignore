@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 .venv/
+.venv_ui/
 .it2_env*
 runs/
 factindic_out/
