@@ -14,7 +14,7 @@ Full report with confidence intervals and limitations: [`results/final_run/REPOR
 |---|---|
 | H1 fertility ↔ hallucination | Not supported (see below) |
 | H2 precision drop across modalities | Partly supported: Romanized input lowers claim precision strongly, script-mixed input does not |
-| H3 router vs human labels | Future work: needs human annotation |
+| H3 router vs human labels | Planned, not evaluated (future work): it needs human annotation, which did not fit the timeline. No claim is made |
 | H4 anchor-aware CAD | Not supported |
 | Full pipeline | Claim precision 0.756 against 0.728 (standard prompt) and 0.752 (anchor checklist); neither difference is significant |
 
@@ -48,7 +48,7 @@ The backbone is **`google/gemma-4-E2B-it`**. Everything is in `h1_report/working
 - **Why Gemma-4:** Sarvam-1-SFT hallucinates 18 points more (95% CI 10 to 26). Gemma-4 also wins under
   native NLI (11 points) and on unsupported names and numbers (9 points). Its ROUGE-L is lower.
 - **Limits:** the result is a failure to find the effect, on 100 articles. MiniCheck and the native NLI
-  verifier agree poorly (κ = 0.15), so "Romanization raises hallucination" waits for the human labels.
+  verifier agree poorly (κ = 0.15) and there are no human labels, so "Romanization raises hallucination" is not settled.
   Claims were translated with NLLB-200, not IndicTrans2. The Romanized inputs had the spelling defects listed below
   (fixed for 01–07), which also counts against reading Romanized H1 scores as pure script effects. 20 of 100 Llama Gujarati summaries hit the
   192-token cap; leaving long outputs out does not change the verdict.
@@ -68,15 +68,15 @@ Stage 3  contrastive decoding     batched dual-KV-cache loop: anchor-aware dynam
                                   (JSD premature layer, η=0.1 plausibility mask) · K=5 candidates
 Stage 4  verify + rerank          IndicTrans2 (own environment, digits normalized) → round-trip anchor check →
                                   MiniCheck-FT5 | native mDeBERTa-XNLI → J(S_k) rerank → 1 prune pass
-Eval     non-circular             held-out FactCG-DeBERTa-L + 300 double-annotated summaries
+Eval     non-circular             held-out FactCG-DeBERTa-L (no human annotation)
 ```
 
 ## Repository
 
 | Path | Contents |
 |---|---|
-| `factindic/` | The package: config, data, translit, lid, normalizer, ner, prompts, llm, sft, decoding, lookback, cove, mt, claims, verify, rerank, metrics, stats, annotate, viz, parallel, preflight, it2_env + it2_server (IndicTrans2) |
-| `factindic/pipeline/` | Stage drivers: `stage1`, `stage2`, `stage3`, `stage4`, `evaluate`, `analysis`, `human` |
+| `factindic/` | The package: config, data, translit, lid, normalizer, ner, prompts, llm, sft, decoding, lookback, cove, mt, claims, verify, rerank, metrics, stats, viz, parallel, preflight, it2_env + it2_server (IndicTrans2) |
+| `factindic/pipeline/` | Stage drivers: `stage1`, `stage2`, `stage3`, `stage4`, `evaluate`, `analysis`, `detector`, `auto` |
 | `notebooks/` | `00-h1-gate` (done) and `FactIndic_run_all` (01–06, all source code visible; needs the `factindic_inputs.zip` dataset) |
 | `run_local.py`, `setup_local.*`, `requirements-local.txt` | Laptop run |
 | `inputs/notebook01_v2.zip` | Output of the finished notebook 01 run |
@@ -84,6 +84,9 @@ Eval     non-circular             held-out FactCG-DeBERTa-L + 300 double-annotat
 | `src/stage0_data_and_h1_gate.py` | Script form of the H1 notebook |
 | `h1_report/` | H1 results |
 | `results/final_run/` | **The final run**: `REPORT.md`, tables, figures, all summaries, per-item grades (`tools/collect_results.py` builds it; models, data and logs stay local) |
+| `results/kaggle_run/` | Grades and summaries of the second, partial run on Kaggle (older code; see its README) |
+| `paper/`, `slides/` | IEEE paper (Word, PDF) and slides (PDF) with their sources; `paper/extra_numbers.py` recomputes the clustered intervals, the verifier analysis and the second run |
+| `app/`, `run_app.sh` | Demo: FastAPI service and Streamlit page |
 | `results/factindic/` | Unzipped outputs of notebooks 01–07 (not in git). Keep them out of `factindic/`, which is code only |
 | `factindic/requirements.txt` | Pinned main environment (notebooks 01–07) |
 | `factindic/requirements-it2.txt` | Locked IndicTrans2 environment |
@@ -102,13 +105,13 @@ first, retries failures, and stops by itself.
 
 | Notebook | What it does | T4 time |
 |---|---|---|
-| 01 data_stage1 | 5-rule ILSUM sanitation; 300-article testbed in 3 variants; 100 dev articles; natural-CM subset; anchors; mFACT weights; naturalness sheets | ~2–2.5 h (2 h 15 measured); ~30–40 min (estimate) when the version 2 output is attached |
+| 01 data_stage1 | 5-rule ILSUM sanitation; 300-article testbed in 3 variants; 100 dev articles; natural-CM subset; anchors; mFACT weights | ~2–2.5 h (2 h 15 measured); ~30–40 min (estimate) when the version 2 output is attached |
 | 02 seq2seq_baselines | IndicBARTSS (Exp 1a) and mT5-base (Exp 1b), fine-tuned, beam 4 | ~2–2.5 h |
 | 03 stage2_prompting_sft | Cond A/B1/B2/B3; weighted LoRA-SFT; dev selection of the Stage-3 base; test runs; Llama (Exp 2c); latency | ~4–8.5 h |
 | 04 stage3_decoding | α/β tuning; Exp 4a–4d; K=5 candidates; CoVe (Exp 5b); perplexity; lookback features | ~3.5–6.5 h |
 | 05 stage4_verify_rerank | Router, reranking, pruning, drop-only (Exp 5a), FactIndic (Exp 6) | ~1.5–2 h |
-| 06 evaluate | FactCG evaluation, all metrics, H2/H4/pipeline tests and figures, annotation export | ~1.5–2.5 h |
-| 07 human_eval_results | κ, H3, Lookback detector, final `eval/results.json` | ~0.5 h |
+| 06 evaluate | FactCG evaluation, all metrics, H2/H4/pipeline tests and figures | ~1.5–2.5 h |
+| 07 results | Lookback detector, final `eval/results.json` | ~10 min |
 
 **Environment.** One pinned stack for every notebook: transformers 5.24.0 and huggingface_hub 1.33.0, the
 versions the H1 run proved. torch, numpy, pandas and pyarrow come from the Kaggle/Colab image.
@@ -125,7 +128,8 @@ access and translation, and stops in the first minutes if something is missing.
 **Hugging Face access.** Add the `HF_TOKEN` secret. Accept the terms for `ai4bharat/indictrans2-indic-en-dist-200M`
 (gated, required), `ai4bharat/IndicNER` (gated, required) and `meta-llama/Llama-3.2-3B-Instruct` (gated, optional).
 
-**Budget.** The total is about 15–26 T4 hours with the reduced sizes below (calibrated on the H1 run: Gemma-4 took ~11 s per summary unbatched), so plan on two Kaggle weekly quotas or add Colab sessions. Notebooks 03 and 04 can exceed Kaggle's 12 h session limit; just rerun them. Every job appends
+**Budget.** The final run took 3 h 25 min on the RTX 5050 laptop. A Kaggle T4 x2 run took 3.6 h without seven optional jobs.
+The times in the table are earlier estimates for larger samples. Every job appends
 JSONL and skips finished items, so you can split any notebook across sessions.
 
 ## Hypotheses → experiments → figures
@@ -134,7 +138,7 @@ JSONL and skips finished items, so you can split any notebook across sessions.
 |---|---|---|
 | **H1** fertility ↔ hallucination | Article fixed effects, separated into within-model (script changes) and across-model (family changes) | `h1_fertility`, `h1_shift`, `h1_coefficients`, `h1_sensitivity`, `h1_shift_by_measure` |
 | **H2** precision drop across modalities | Same articles and facts in native, script-mixed and Romanized form; paired bootstrap and FE-OLS; Gujarati vs Hindi | `h2_precision_by_variant`, `h2_anchor_errors` |
-| **H3** translate-then-verify vs router (**future work**, needs human labels) | Cohen's κ and macro-F1 against human labels by modality, with τ tuned on dev; a label-free oracle-source proxy | `h3_agreement`, `h3_proxy_oracle_agreement` |
+| **H3** translate-then-verify vs router | **Planned, not evaluated** (future work; needs human labels) | none |
 | **H4** anchor-aware CAD | Numeric and entity anchor F1 plus perplexity vs static CAD, AdaCAD, DoLa and greedy (paired bootstrap) | `h4_numeric_f1`, `h4_entity_f1`, `h4_perplexity` |
 | **Pipeline** | Stage-by-stage F1 ladder; precision–recall (drop-only collapse vs reranking); latency; router route share | `pipeline_ladder_*`, `pipeline_precision_recall`, `pipeline_latency`, `stage4_route_share` |
 | **Data** | Sanitation vs the published audit; faithfulness-score distribution; CMI per modality | `data_sanitation_*`, `data_faithfulness_scores`, `data_cmi` |
@@ -160,14 +164,14 @@ current Kaggle or Colab Python. The replacements are:
   Testbed and vocabulary use the same Romanizer, so real user spellings will score lower.
 
 **Script-mixed variant.** It swaps about 80 common nouns per language, never inside a named entity, for English and keeps
-Gujarati case endings as separate words (`pollution નું`). Naturalness is checked by native
-speakers with `annotation/naturalness_*.csv`.
+Gujarati case endings as separate words (`pollution નું`). The variants are built by rules and were not
+rated by native speakers.
 
 **Claims.** Claim units are summary sentences, because MiniCheck and FactCG are trained at
 sentence level. Qwen molecular decomposition is available in `claims.MolecularDecomposer`.
 
 **Candidates.** K=5 means one Anchor-CAD+DoLa candidate plus four nucleus samples
-(T = 0.7, top-p = 0.9), as §13 suggests. α_base, α_anchor and β are tuned over an 8-point grid
+(T = 0.7, top-p = 0.9), as §13 suggests. α_base, α_anchor and β are tuned over a 4-point grid
 inside the spec's ranges.
 
 **Stage-2 dev selection.** The dev set is graded with the IndicTrans2 → MiniCheck router. This grade only
@@ -177,16 +181,18 @@ inside the spec's ranges.
 Stage-2 condition but can't feed the single-pass decoding loop.
 
 **Lookback Lens.** It is trained at sentence level, not on 8-token windows. Labels come from
-FactCG; the train/test split is by article. Human labels can replace them.
+FactCG; the train/test split is by article.
 
-**Reduced sizes (to fit the free GPU budget).**
-- Testbed: 150 articles per language (300 total, × 3 variants); the H4 decoding comparison uses 75 per language.
-- Natural code-mixed set: 100 articles per language.
-- Faithfulness scores: computed on 2,000 of the 4,000 pool pairs per language. The seq2seq baselines still train on all 4,000.
-- These widen the H2/H4 confidence intervals by roughly 30%. H3 is unaffected, because the 300 annotated summaries are unchanged.
-
-**Gemma SFT size.** The SFT uses 1,000 + 1,000 weighted pairs (configurable in `CFG`) so it fits
-a single T4 session.
+**Reduced sizes (to fit the time and GPU budget; `CFG` in `config.py`).**
+- Testbed: 60 articles per language (120 total, × 3 variants = 360 items per system), out of 150 prepared.
+- Decoding comparison (H4): 40 articles per language (240 items). CoVe: 60 items.
+- Dev set: 24 articles per language, out of 50 prepared. Decoding parameters are tuned on 10 per language.
+- Natural code-mixed set: 40 articles per language, out of 77 Hindi and 100 Gujarati prepared.
+- Faithfulness scores: computed on 2,000 of the 4,000 pool pairs per language.
+- Gemma LoRA-SFT: 600 weighted pairs per language, one epoch.
+- Seq2seq baselines: 4,000 pool pairs in total (both languages), two epochs.
+- Latency: 15 items, batch size 1.
+- Confidence intervals are roughly twice as wide as with the 250 test articles per language first planned.
 
 **Seeds.** Greedy decoding is deterministic. The seeds (42, 108, 2026) apply to sampling and to
 the bootstrap.

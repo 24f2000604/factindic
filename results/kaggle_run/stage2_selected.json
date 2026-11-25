@@ -1,0 +1,6 @@
+{
+  "system": "gemma_B3",
+  "model_key": "gemma",
+  "cond": "B3",
+  "adapter": null
+}

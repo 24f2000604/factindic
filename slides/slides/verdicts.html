@@ -4,7 +4,8 @@
 <p class="lead"><b>H1, not supported.</b> Tokens per word do not explain hallucination.</p>
 <p class="lead"><b>H2, partly supported.</b> Romanized input costs 0.18 precision in Hindi and 0.43 in Gujarati with B1; mixing in English nouns costs nothing measurable.</p>
 <p class="lead"><b>H4, not supported.</b> Anchor-aware decoding does not beat simpler decoding.</p>
-<p class="lead"><b>Pipeline.</b> All four stages are not measurably more precise than a prompt with an anchor checklist, at ten times the time.</p>
+<p class="lead"><b>Pipeline.</b> All four stages are not measurably more precise than a prompt with an anchor checklist, at ten times the time; its verifier is the weak link.</p>
+<p class="lead"><b>Second run.</b> Other hardware, older code: same verdicts on H2 and H4.</p>
 </div>
 <div style="flex:1"></div>
 <p class="lead"><b>Future work:</b> H3, the verification router against human labels; and Romanized input itself.</p>

@@ -4,6 +4,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 N = json.loads((HERE / "numbers.json").read_text())
+X = json.loads((HERE / "extra_numbers.json").read_text())        # extra_numbers.py
 S, T, D, H1 = N["systems"], N["tests"], N["decoding"], N["h1"]["sens"]
 f2 = lambda x: f"{x:.2f}"
 f3 = lambda x: f"{x:.3f}"
@@ -37,6 +38,10 @@ sh = N["stage4"]["selected_k_share"]
 nli = N["stage4"]["nli_route_share"]
 vr = N["variants"]
 lat1 = N["latency_single"]
+XL, XK, V = X["laptop"], X["kaggle"], X["verifiers"]
+CL = lambda run, k, m: ci(run["pairs"][k][m])
+px = lambda t: "p < 0.001" if t["p"] < 0.001 else f"p = {t['p']:.3f}" if t["p"] < 0.1 else f"p = {t['p']:.2f}"
+assert V["n"] == 632 and XL["base"] == "gemma_B1" and XK["base"] == "gemma_B3"
 assert N["latin_out"]["gemma_B1"] == 0 and N["latin_out"]["factindic"] == 0 and N["selected"]["system"] == "gemma_B1"
 
 TITLE = "FactIndic: A Zero-Cost Pipeline for Factuality-Aware Summarization of Hindi, Gujarati and Code-Mixed Text, with Mostly Negative Results"
@@ -51,6 +56,7 @@ ABSTRACT = (
     "decoding does not improve on static or adaptive context-aware decoding. The full pipeline reaches a precision of "
     f"{f3(S['factindic']['P']['mean'])} against {f3(S['gemma_A']['P']['mean'])} for a standard prompt and {f3(S['gemma_B1']['P']['mean'])} for a prompt with an anchor checklist; "
     "neither difference is significant, and the pipeline costs about ten times more time. It does improve normalized anchor F1 over the standard prompt. "
+    "Most claims reach a native verifier whose verdicts barely agree with the grader, a likely reason why verification adds little. A second, partial run on other hardware gives the same verdicts on the hypotheses it repeats. "
     "We report these negative results in full, together with three engineering faults that could have distorted the conclusions had they gone unnoticed.")
 INDEX = "abstractive summarization, factual consistency, hallucination, Hindi, Gujarati, code-mixing, contrastive decoding, negative results"
 
@@ -124,7 +130,7 @@ h2("Metrics")
 p("Claim precision is the share of summary sentences that FactCG [12] finds supported by the English translation of the *native* article, whatever the input form, so every system is graded against the same facts. FactCG never weights training data and never reranks. Claim recall is the share of source-supported reference sentences that the summary supports. "
   f"It is undefined when no reference sentence is supported, which happens for {S['gemma_A']['n'] - S['gemma_A']['n_R']} of {S['gemma_A']['n']} items (only {100 * N['refs']['grounded']:.0f}% of {N['refs']['claims']} reference sentences are supported), so we report recall and F1 on the other {S['gemma_A']['n_R']} items. "
   "Anchor precision, recall and F1 compare normalized anchors with the source and with the source-supported anchors of the reference. ROUGE [27] uses Indic tokenization; BERTScore [28] uses IndicBERT v2 [29] and is rescaled.")
-p("Intervals are 95% percentile bootstrap intervals with 1,000 resamples; pairwise differences are paired by item. Regressions have article fixed effects and standard errors clustered by article. A bootstrap p-value of zero is printed as p < 0.002. We do not correct for multiple comparisons, so isolated values near 0.05 should not be read as findings. Thresholds and samples were not changed after results were seen. Two things were decided afterwards: H3 was moved to future work for lack of human labels (a label-free proxy had been computed; it compares the router with itself and is not reported), and recall and F1 were restricted to items where recall is defined, because the original code counted some undefined cases as zero. The restriction changes no conclusion.")
+p("Intervals are 95% percentile bootstrap intervals with 1,000 resamples; pairwise differences are paired by item. Regressions have article fixed effects and standard errors clustered by article. A bootstrap p-value of zero is printed as p < 0.002. The three forms of an article are not independent, so for the main comparisons we also give intervals that resample articles instead of items; these, the test of the language difference and the verifier analysis below were added after the results were seen. We do not correct for multiple comparisons, so isolated values near 0.05 should not be read as findings. Thresholds and samples were not changed after results were seen. Two things were decided afterwards: H3 was moved to future work for lack of human labels (a label-free proxy had been computed; it compares the router with itself and is not reported), and recall and F1 were restricted to items where recall is defined, because the original code counted some undefined cases as zero. The restriction changes no conclusion.")
 
 h1("Results")
 h2("H1: tokenizer fertility")
@@ -142,7 +148,7 @@ h2("H2: input form")
 gA, gB, gF = (H2[s] for s in ("gemma_A", "gemma_B1", "factindic"))
 p("Fig. 2 and Table II show precision by input form. "
   f"With native input as reference, a regression with article fixed effects gives a large loss for Romanized input ({reg(gA['regression']['roman'])} for *A*; {reg(gB['regression']['roman'])} for *B1*; {reg(gF['regression']['roman'])} for FactIndic) and none for script-mixed input "
-  f"({reg(gA['regression']['script_mixed'])}; {reg(gB['regression']['script_mixed'])}; {reg(gF['regression']['script_mixed'])}). The loss is about twice as large in Gujarati as in Hindi for these systems, e.g. {ci(gB['gu']['native→roman'], 2)} against {ci(gB['hi']['native→roman'], 2)} for *B1*; we did not test this difference formally.")
+  f"({reg(gA['regression']['script_mixed'])}; {reg(gB['regression']['script_mixed'])}; {reg(gF['regression']['script_mixed'])}). The loss is about twice as large in Gujarati as in Hindi for these systems, e.g. {ci(gB['gu']['native→roman'], 2)} against {ci(gB['hi']['native→roman'], 2)} for *B1*. Tested afterwards, the difference between the languages is {sg(XL['roman']['gemma_B1']['gu_minus_hi']['diff'], 2)} [{sg(XL['roman']['gemma_B1']['gu_minus_hi']['lo'], 2)}, {sg(XL['roman']['gemma_B1']['gu_minus_hi']['hi'], 2)}] for *B1* and {sg(XL['roman']['gemma_A']['gu_minus_hi']['diff'], 2)} [{sg(XL['roman']['gemma_A']['gu_minus_hi']['lo'], 2)}, {sg(XL['roman']['gemma_A']['gu_minus_hi']['hi'], 2)}] for *A*, but for FactIndic it is {sg(XL['roman']['factindic']['gu_minus_hi']['diff'], 2)} [{sg(XL['roman']['factindic']['gu_minus_hi']['lo'], 2)}, {sg(XL['roman']['factindic']['gu_minus_hi']['hi'], 2)}], which includes zero.")
 e = N["h2_errors"]
 p(f"The second clause of H2 is not supported. On native input Gujarati precision is not significantly different from Hindi ({reg(gB['regression']['gujarati_vs_hindi_native'])} for *B1*; {reg(gF['regression']['gujarati_vs_hindi_native'])} for FactIndic), and the share of unsupported entities among summary anchors is lower in Gujarati ({100 * e['gu']['ent']:.1f}% of {e['gu']['anchors']}) than in Hindi ({100 * e['hi']['ent']:.1f}% of {e['hi']['anchors']}).")
 p(f"IndicBARTSS, mT5 and the fine-tuned Gemma answer all 120 Romanized items in Latin script (Llama: {N['latin_out']['llama_A']}; Gemma *B1* and FactIndic: 0). Their Romanized scores therefore combine a script failure with a translator that expects native script, and cannot be compared with the others.")
@@ -187,16 +193,29 @@ B.append(("table", "Decoding methods on the same 240 items", ["Method", "P", "En
 h2("The full pipeline")
 tb = T["factindic-gemma_A"]
 p(f"On all 440 items FactIndic's claim precision differs from the standard prompt by {ci(FA['P_fact'])} and from *B1* by {ci(FB['P_fact'])}; neither is significant. Anchor F1 is higher than with the standard prompt ({ci(FA['F1_anchor'])}, {pv(FA['F1_anchor']['p'])}; test bed only: {ci(tb['F1_anchor'])}) but not than with *B1* ({ci(FB['F1_anchor'])}). "
+  f"With articles resampled, anchor F1 is {CL(XL, 'factindic-gemma_A', 'F1_anchor')} against *A* ({px(XL['pairs']['factindic-gemma_A']['F1_anchor'])}) and the gain of *B1* over *A* becomes {CL(XL, 'gemma_B1-gemma_A', 'F1_anchor')} ({px(XL['pairs']['gemma_B1-gemma_A']['F1_anchor'])}). "
   f"Stages 3 and 4 therefore add no measurable benefit to the checklist prompt. Claim F1, on items where it is defined, shows no difference either (vs. *A*: {ci(tb['F1_fact_defined'])}).")
 p(f"Deleting every rejected sentence (drop-only) has precision {f3(S['drop_only']['P']['mean'])} on the summaries that remain, but leaves {100 * S['drop_only']['empty']:.0f}% empty; FactIndic has higher anchor F1 ({ci(FD['F1_anchor'])}) at a precision that is not significantly different ({ci(FD['P_fact'])}). Stage 4 kept the Stage 3 candidate in {100 * sh['0']:.0f}% of cases and pruned {100 * N['stage4']['pruned_rate']:.0f}% of summaries. "
   f"Between {100 * min(nli.values()):.0f}% and {100 * max(nli.values()):.0f}% of claims went to the native verifier because an anchor did not survive translation, even for native input, so the router rarely trusted the translation.")
+p(f"This matters because the native verifier is weak. On the {V['n']} sentences of the Stage 3 candidates, its verdicts agree with those of FactCG barely above chance (κ = {V['nli']['kappa']:.2f}, AUROC {V['nli']['auroc']:.2f}), against κ = {V['minicheck']['kappa']:.2f} and {V['minicheck']['auroc']:.2f} for MiniCheck; the router as a whole reaches {V['router']['kappa']:.2f} and {V['router']['auroc']:.2f}. "
+  "MiniCheck and FactCG read the same English translation and can share its errors, so this is a diagnostic: it neither shows which verifier is right nor tests H3.")
+p(f"Split into its steps, the estimates point in opposite directions: Anchor-CAD is {CL(XL, 'dec_anchor_cad_dola-gemma_B1', 'P_fact')} in precision against its greedy base *B1*, which is not significant, and reranking is {CL(XL, 'factindic-dec_anchor_cad_dola', 'P_fact')} against Anchor-CAD ({px(XL['pairs']['factindic-dec_anchor_cad_dola']['P_fact'])}; articles resampled, exploratory).")
 h2("Cost and detection")
 p(f"FactIndic takes {S['factindic']['latency']:.1f} s per summary against {S['gemma_B1']['latency']:.2f} s for *B1* in batches; one summary at a time takes {lat1['latency_gemma_B1']['mean_s']:.1f} s with *B1* ({lat1['latency_gemma_B1']['n']} items). "
   f"A Lookback Lens detector [18] trained on Gemma's attention reaches an AUROC of {N['lookback']['auroc']:.2f} on {N['lookback']['n_test']} test sentences ({N['lookback']['auroc_mean_ratio']:.2f} for the mean ratio alone). Its labels are FactCG verdicts, so it predicts the grader rather than human judgement.")
 
+h2("A second run")
+kr, lr = XK["roman"], XL["roman"]
+p(f"We ran an earlier version of the code on a free cloud machine (two T4 GPUs, 4-bit Gemma) on the same 440 items, with {XK['systems']} of the {XL['systems']} systems. It is not a clean replication: the development score had the fault described below and chose *B3* as base prompt, IndicBARTSS training diverged (excluded here), and the attention fault was not tested for. "
+  f"The verdicts on H2 and H4 agree. Romanized input changes the precision of *B1* by {sg(kr['gemma_B1']['hi']['diff'], 2)} in Hindi and {sg(kr['gemma_B1']['gu']['diff'], 2)} in Gujarati, script-mixed input hardly does ({sg(kr['gemma_B1']['mixed']['hi'], 2)} and {sg(kr['gemma_B1']['mixed']['gu'], 2)}), and here the language difference is clear for FactIndic too ({sg(kr['factindic']['gu_minus_hi']['diff'], 2)} [{sg(kr['factindic']['gu_minus_hi']['lo'], 2)}, {sg(kr['factindic']['gu_minus_hi']['hi'], 2)}]). "
+  f"Anchor-CAD does not improve entity F1 over static CAD ({ci(XK['h4']['dec_static_cad']['F1_anchor_ent'])}) or AdaCAD ({ci(XK['h4']['dec_adacad']['F1_anchor_ent'])}), nor numeric F1 ({ci(XK['h4']['dec_static_cad']['F1_anchor_num'])}, {XK['h4']['dec_static_cad']['F1_anchor_num']['n']} items; {ci(XK['h4']['dec_adacad']['F1_anchor_num'])}, {XK['h4']['dec_adacad']['F1_anchor_num']['n']} items).")
+p(f"One result differs: there FactIndic is more precise than the standard prompt ({CL(XK, 'factindic-gemma_A', 'P_fact')}, {px(XK['pairs']['factindic-gemma_A']['P_fact'])}, articles resampled). FactIndic itself scores almost the same on the test bed in both runs ({f3(XL['P']['factindic'])} and {f3(XK['P']['factindic'])}), while *A* is lower in the second ({f3(XK['P']['gemma_A'])} against {f3(XL['P']['gemma_A'])}). "
+  f"Against its own base prompt FactIndic gains nothing measurable in either run ({CL(XL, 'factindic-gemma_B1', 'P_fact')} here, {CL(XK, 'factindic-gemma_B3', 'P_fact')} there), and reranking recovers precision over Anchor-CAD in both ({CL(XK, 'factindic-dec_anchor_cad_dola', 'P_fact')} in the second). All numbers outside this section come from the laptop run.")
+
 h1("Discussion")
 p("*Romanization is the problem worth solving.* It is the only large effect we find, and none of our interventions removes it. The anchors of Romanized test items came from the aligned native article, which a deployed system does not have; real Romanized input is likely to do worse.")
 p("*A checklist goes a long way.* Listing the source's names, numbers and dates costs almost nothing and gives most of what the pipeline gives. Anchor precision is already 0.96 to 0.99 for every Gemma system, which leaves decoding methods that protect anchors little to correct. We did not classify the remaining errors; an anchor list cannot catch wrong relations between correct names.")
+p(f"*The router is the weak link.* Requiring every anchor to survive translation sends {100 * V['to_nli']:.0f}% of these claims to a verifier that barely agrees with the grader, so the reranker optimizes a noisy signal; our result says little about reranking with a better verifier.")
 p("*Silent faults.* Three could have distorted our conclusions. PyTorch's memory-efficient attention kernel returned wrong Gemma-4 logits on our GPU at certain sequence lengths (513, 673 and 1,089 among those tested; errors of 11 to 23), so batches padded to such a length produced empty or broken summaries; we disabled it, discarded the first run and repeated it. "
   "The development score computed anchor recall without entities, which made it zero for every system and left the choice of prompt to ROUGE. A library filled finished beams with end-of-sequence markers that a tokenizer did not strip, which would have added text to one baseline's summaries. All three were found by reading outputs, not from error messages.")
 
@@ -207,15 +226,15 @@ li("Sizes are smaller than planned (60 test, 24 development and 40 naturally mix
 li("Claim recall is close to zero and defined for 38% of items, so claim F1 is nearly uninformative; we rank systems by precision and anchors." if round(100 * S['gemma_A']['n_R'] / S['gemma_A']['n']) == 38 else None)
 li("Romanized text is rule-based and uses the same rules as the vocabulary that converts it back, so it is easier than real user spelling.")
 li("H1 used 4-bit Gemma, NLLB-200 translation and an older Romanizer; the other experiments use bf16, IndicTrans2 and the corrected Romanizer. Their numbers are not directly comparable.")
-li("The sampled candidates of Stage 4 and the fine-tuned models come from single runs with one seed.")
+li("One seed. The second run also differs in hardware, precision and code, so it does not measure seed variation.")
 
 h1("Conclusion and Future Work")
-p("On one laptop GPU and at no cost, a four-stage factuality pipeline for Hindi and Gujarati was not measurably more precise than a prompt with an anchor checklist. Tokenizer fertility did not explain hallucination, and anchor-aware decoding did not improve on simpler contrastive decoding. Romanized input was by far the largest source of error, about twice as costly in Gujarati as in Hindi. "
+p("On one laptop GPU and at no cost, a four-stage factuality pipeline for Hindi and Gujarati was not measurably more precise than a prompt with an anchor checklist. Tokenizer fertility did not explain hallucination, and anchor-aware decoding did not improve on simpler contrastive decoding. Romanized input was by far the largest source of error, about twice as costly in Gujarati as in Hindi for our prompts. "
   "The practical advice for small open models is to list the source's anchors in the prompt and to treat Romanized input with care.")
 p("*Future work.* The first step is to test H3: whether translate-then-verify agrees less with human claim labels on Romanized than on native input, and whether the round-trip router closes part of that gap. It needs two annotators per language; the same labels would validate FactCG on this data. "
-  "The second is to work on Romanized input itself, with real user spellings and learned transliteration. The third is to measure errors beyond names and numbers.")
+  "The second is a better native verifier and a less strict routing rule. The third is to work on Romanized input itself, with real user spellings and learned transliteration. The fourth is to measure errors beyond names and numbers.")
 h1("Code and Data")
-p("Code, summaries, per-item grades and the run report are at https://github.com/aaryavrdhanpandey-star/factindic; commit f4b74db is the code of the reported run. XL-Sum and ILSUM remain under their own licences.")
+p("Code, summaries, per-item grades and the run report are at https://github.com/aaryavrdhanpandey-star/factindic; commit f4b74db is the code of the reported run, and results/kaggle_run holds the grades of the second run. XL-Sum and ILSUM remain under their own licences.")
 h1("Acknowledgment")
 p("Claude Code (Anthropic) was used to write code, run the experiments and draft this manuscript. No paid model was used in the experiments. [Authors: confirm this statement and describe your own review.]")
 

@@ -1,0 +1,14 @@
+<section id="second_run">
+<h2>A second run on other hardware: same verdicts, one difference</h2>
+<table style="font-size:28px">
+<tr><th style="width:46%"></th><th style="width:27%">Laptop (main result)</th><th style="width:27%">Kaggle (older code)</th></tr>
+<tr><td>H2: B1, native to Romanized, Hindi</td><td>−0.18 [−0.31, −0.07]</td><td>−0.16 [−0.29, −0.03]</td></tr>
+<tr><td>H2: B1, native to Romanized, Gujarati</td><td>−0.43 [−0.57, −0.29]</td><td>−0.54 [−0.66, −0.40]</td></tr>
+<tr><td>H4: entity F1, Anchor-CAD − static CAD</td><td>+0.009 [−0.025, +0.046]</td><td>−0.001 [−0.028, +0.026]</td></tr>
+<tr><td>Precision, FactIndic − its own base prompt</td><td>+0.008 [−0.021, +0.039]</td><td>+0.023 [−0.011, +0.057]</td></tr>
+<tr style="background:#f6e3d6"><td>Precision, FactIndic − standard prompt</td><td>+0.024 [−0.016, +0.061]</td><td>+0.083 [+0.035, +0.131]</td></tr>
+</table>
+<p class="take">FactIndic scores almost the same in both (0.756 and 0.749); the standard prompt is weaker on Kaggle (0.665 against 0.728).</p>
+<p class="foot">95% intervals, articles resampled · Kaggle: 4-bit Gemma, base prompt B3, 11 of 15 systems, IndicBARTSS excluded</p><div class="page"></div>
+<aside>The Kaggle run was made before the fixes: its development score ignored names, so it chose B3 almost by chance, and IndicBARTSS training diverged. It supports the verdicts on H2 and H4. The gain over the standard prompt is significant there but not on the laptop, so we do not claim it. All other slides use the laptop run only.</aside>
+</section>

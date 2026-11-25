@@ -26,12 +26,9 @@ SMOKE = Path("/tmp/factindic_smoke") if IS_KAGGLE else ROOT.parent / "smoke"
 
 # --------------------------------------------------------------------------- jobs not found elsewhere
 def prep(shard, n_shards, **_):
-    from ..annotate import export_naturalness
-    from ..data import load_set
     from . import stage1
     stage1.build_all()
     stage1.prepare_weights()
-    export_naturalness(load_set("testbed"))
 
 
 def sft(shard, n_shards, **_):
@@ -117,10 +114,10 @@ def bertscore(shard, n_shards, **_):
 
 
 def final(shard, n_shards, **_):
-    """CPU only: sheets, label-free H3, Lookback detector, tests, tables, figures."""
+    """CPU only: Lookback detector, tests, tables, figures."""
     import traceback
-    from . import analysis, human, stage1
-    for name, f in (("annotation sheets", human.export_sheets), ("H3 proxy and Lookback", lambda: human.run(gpu=False)),
+    from . import analysis, detector, stage1
+    for name, f in (("Lookback detector", detector.run),
                     ("analysis", analysis.run_all), ("data figures", stage1.figures)):
         try:
             f()
@@ -294,7 +291,7 @@ def run_plan(jobs, root, cfg, t0, n_gpu, soft_h=None, hard_h=None, timeout_min=1
 
 
 SMOKE_CFG = dict(n_use=dict(testbed=1, dev=1, natural_cm=1), n_sft_per_lang=8, n_decoding_ablation_per_lang=1, n_cove=2, n_tune=1,
-                 n_s2s_train=32, s2s_epochs=1, n_score_per_lang=2, bootstrap=50, n_annot_summaries=6, n_annot_dev=2)
+                 n_s2s_train=32, s2s_epochs=1, n_score_per_lang=2, bootstrap=50)
 
 
 def smoke(t0, n_gpu):

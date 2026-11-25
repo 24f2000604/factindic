@@ -1,6 +1,6 @@
 """Gather a finished run into one folder: python tools/collect_results.py [results/final_run]
 
-H1 is left out on purpose (it is finished and lives in h1_report/), and so are H3 and the annotation sheets (no human evaluation). The folder is rebuilt from runs/factindic each
+H1 is left out on purpose (it is finished and lives in h1_report/). The folder is rebuilt from runs/factindic each
 time; REPORT.md, if somebody wrote one there, is kept."""
 import hashlib
 import json
@@ -41,9 +41,9 @@ def main():
     # reports: tables and test results, without H1
     res = json.loads((RUN / "eval" / "results.json").read_text(encoding="utf-8"))
     res.pop("h1", None)
-    lookback = (res.pop("h3", None) or {}).get("lookback")        # H3 itself was dropped
-    if lookback:
-        res["lookback"] = lookback
+    old = res.pop("h3", None) or {}                              # runs made before H3 was dropped
+    if old.get("lookback"):
+        res.setdefault("lookback", old["lookback"])
     (out / "1_reports" / "results.json").write_text(json.dumps(res, ensure_ascii=False, indent=2).replace(str(REPO) + "/", ""), encoding="utf-8")
     copy(RUN / "eval" / "main_table.csv", out / "1_reports" / "main_table.csv")
     for f in (RUN / "outputs").glob("*.json"):           # dev scores, chosen base, decoding grid, latency

@@ -2,7 +2,7 @@
 environment (it2_env.py). Native digits are mapped to ASCII before translation so numbers are copied
 rather than re-generated; all translations are cached on disk.
 
-There is no silent fallback: mixing translators inside one experiment would confound H3. To run the
+There is no silent fallback: mixing translators inside one experiment would confound the comparison of verifiers. To run the
 whole project on NLLB-200 instead, set CFG["mt_backend"]="nllb" or the env var FACTINDIC_MT=nllb.
 """
 from __future__ import annotations

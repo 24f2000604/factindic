@@ -72,7 +72,7 @@ out["h4"], out["h2"], out["pipeline"] = res["h4"]["tests"], res["h2"]["tests"], 
 out["stage4"], out["params"], out["dev"] = res["pipeline"]["stage4"], res["stage3_params"], res["stage2_dev"]
 out["h1"] = dict(sens=res["h1"]["sensitivity"]["tests"], contrasts=res["h1"]["tests"]["model_contrasts_halluc"],
                  agreement=res["h1"]["verifier_agreement"], shift=res["h1"]["by_measure"]["table"])
-out["lookback"] = {k: v for k, v in res["h3"]["lookback"].items() if k != "fig"}
+out["lookback"] = {k: v for k, v in (res.get("lookback") or res["h3"]["lookback"]).items() if k != "fig"}
 for s in ("gemma_A", "gemma_B1", "factindic", "llama_A", "indicbartss", "mt5", "gemma_sft"):
     out["variants"][s] = {f"{l}/{v}": mean(d.P_fact) for (l, v), d in ev[ev.system == s].groupby(["lang", "variant"])}
 for a, b in (("factindic", "gemma_A"), ("factindic", "gemma_B1"), ("gemma_B1", "gemma_A"), ("factindic", "drop_only"), ("gemma_B2", "gemma_B1"),

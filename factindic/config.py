@@ -27,7 +27,7 @@ def _root() -> Path:
 
 ROOT = _root()
 DIRS = {k: ROOT / k for k in
-        ["data", "outputs", "verify", "eval", "figures", "annotation", "models", "cache", "logs"]}
+        ["data", "outputs", "verify", "eval", "figures", "models", "cache", "logs"]}
 H1_DIR = ROOT.parent / "factindic_h1"
 DATA_VERSION = 3                          # bump when the data files of notebook 01 must be rebuilt
 VERSION_FILE = DIRS["data"] / "VERSION"
@@ -100,8 +100,6 @@ CFG = dict(
     K=5, sample_T=0.7, sample_top_p=0.9,
     n_cove=60,                     # CoVe self-rewrite baseline (Exp 5b) on a subset
     tau_ver=0.5, lambda_len=0.2,
-    n_annot_summaries=60, n_annot_dev=20,
-    n_naturalness_per_lang=50,
     bootstrap=1000,
     n_s2s_train=4000, s2s_epochs=2,      # training pairs and epochs of the two seq2seq baselines
     n_tune=4,                            # decoding settings tried on dev

@@ -74,10 +74,7 @@ NOTEBOOKS = [
              ("md", "## 2. Faithfulness weights (IndicTrans2 → MiniCheck on lead + reference) — both GPUs"),
              ("code", "from factindic import parallel\nstage1.prepare_weights()\nparallel.run('factindic.pipeline.stage1:weights_job')\n"
                       "pool = stage1.weighted_pool(); print(len(pool), 'weighted pairs kept')"),
-             ("md", "## 3. Naturalness sheets for 2 native speakers per language"),
-             ("code", "from factindic.annotate import export_naturalness\nfrom factindic.data import load_set\n"
-                      "export_naturalness(load_set('testbed'))"),
-             ("md", "## 4. Figures"),
+             ("md", "## 3. Figures"),
              ("code", "stage1.figures()\n" + SHOW.format(pattern="data_")),
          ]),
     dict(file="02_seq2seq_baselines.ipynb", title="02 · Seq2Seq baselines (Exp 1a IndicBARTSS, Exp 1b mT5-base)",
@@ -164,7 +161,7 @@ NOTEBOOKS = [
          body="IndicTrans2 projection (digits normalized) → round-trip anchor check → MiniCheck-FT5 (anchors "
               "survived) or native mDeBERTa-XNLI (anchors lost); J(S_k) = frac_supported · R_anchor − λ·|W−L|/L; "
               "single capped pruning pass. Romanized sources are back-transliterated (deployment mode); oracle "
-              "native-source verdicts are logged for the H3 proxy.",
+              "native-source verdicts are logged too.",
          cells=[
              ("code", "from factindic.pipeline import stage4\nfrom factindic import parallel\n"
                       "parallel.run('factindic.pipeline.stage4:verify_job')\nprint(stage4.materialize(), 'final summaries')"),
@@ -177,8 +174,7 @@ NOTEBOOKS = [
          body="Held-out FactCG-DeBERTa-L (never used for weights or reranking) grades every system against the "
               "aligned native source: claim P/R/F1 with source-grounded reference recall, normalized anchor P/R/F1 "
               "(numbers and entities separately), Indic-tokenized ROUGE, rescaled IndicBERTv2 BERTScore, length, "
-              "compression, fertility, latency, VRAM; paired bootstrap tests for H1, H2, H4 and every pipeline stage; "
-              "then exports the blinded human-annotation sheets.",
+              "compression, fertility, latency, VRAM; paired bootstrap tests for H1, H2, H4 and every pipeline stage.",
          cells=[
              ("code", "from factindic.pipeline import evaluate, analysis\nfrom factindic import parallel\n"
                       "SYSTEMS = [s for s in ['indicbartss', 'mt5', 'llama_A', 'gemma_A', 'gemma_B1', 'gemma_B2', 'gemma_B3', 'gemma_sft',\n"
@@ -193,21 +189,14 @@ NOTEBOOKS = [
              ("md", "## Figures — hypotheses and pipeline justification"),
              ("code", SHOW.format(pattern="h")),
              ("code", SHOW.format(pattern="pipeline_") + "\n" + SHOW.format(pattern="stage4_").split("\n", 1)[1]),
-             ("md", "## Export blinded annotation sheets (2 annotators × 2 languages)"),
-             ("code", "from factindic.pipeline import human\nhuman.export_sheets()"),
          ]),
-    dict(file="07_human_eval_results.ipynb", title="07 · Human evaluation, H3, Lookback detector, final results",
-         preflight='mt=True, required=("it2",)', inputs="output of 06 + a Kaggle dataset with the filled annotation CSVs", time="~30 min",
-         body="Copy the four filled `claims_<lang>_annotator<A|B>.csv` files into `factindic/annotation/`. Computes "
-              "inter-annotator κ, FactCG-vs-human κ, the H3 verifier-agreement test by modality (thresholds tuned on "
-              "the 100-summary dev split), the label-free H3 proxy, and the Lookback-Lens detector; rebuilds "
-              "`eval/results.json` for the results dashboard.",
+    dict(file="07_results.ipynb", title="07 · Lookback detector, final results",
+         preflight='', inputs="output of 06", time="~10 min",
+         body="Trains the Lookback-Lens detector on FactCG verdicts and rebuilds `eval/results.json`. H3 (verifier agreement "
+              "with human labels) was planned but not evaluated: there is no human annotation.",
          cells=[
-             ("code", "import glob, shutil\nfor f in glob.glob('/kaggle/input/**/claims_*_annotator*.csv', recursive=True):\n"
-                      "    shutil.copy(f, DIRS['annotation']); print('annotation:', f)"),
-             ("code", "from factindic.pipeline import human, analysis\nhres = human.run()\nres = analysis.run_all()\n"
-                      "import json; print(json.dumps({k: hres[k] for k in ('inter_annotator', 'factcg_vs_human') if k in hres}, indent=2))"),
-             ("code", SHOW.format(pattern="h3_") + "\n" + SHOW.format(pattern="lookback").split("\n", 1)[1]),
+             ("code", "from factindic.pipeline import detector, analysis\nprint(detector.run())\nres = analysis.run_all()"),
+             ("code", SHOW.format(pattern="lookback")),
          ]),
 ]
 
@@ -267,9 +256,9 @@ GROUPS = [
      "MiniCheck, mDeBERTa-XNLI, FactCG (held out for evaluation), the round-trip router, reranking, and the P/R/F1 metrics."),
     ("Generation: prompts, LLM loading, LoRA SFT", ["llm", "prompts", "sft"], "Prompt conditions A, B1, B2, B3 and faithfulness-weighted LoRA fine-tuning."),
     ("Decoding: anchor-aware CAD + DoLa, CoVe, Lookback Lens", ["decoding", "cove", "lookback"], "The contrastive decoding methods of Stage 3 and the self-verification baseline."),
-    ("Figures, annotation sheets, checks", ["viz", "annotate", "preflight"], ""),
+    ("Figures and checks", ["viz", "preflight"], ""),
     ("Pipeline stages", ["pipeline/__init__", "pipeline/stage1", "pipeline/stage2", "pipeline/stage3", "pipeline/stage4",
-                         "pipeline/evaluate", "pipeline/analysis", "pipeline/human", "pipeline/auto"],
+                         "pipeline/evaluate", "pipeline/analysis", "pipeline/detector", "pipeline/auto"],
      "Stage 1 to Stage 4, evaluation, hypothesis tests, and the job queue that runs everything on both GPUs."),
 ]
 TEXT_FILES = ["requirements.txt", "requirements-it2.txt", "h1_pilot_ids.txt"]

@@ -1,0 +1,12 @@
+<section id="router">
+<h2>Why verification adds little: the router picks a weak verifier</h2>
+<table style="font-size:32px">
+<tr><th style="width:40%">Verdicts compared with FactCG</th><th style="width:20%">κ</th><th style="width:20%">AUROC</th><th style="width:20%">Says “supported”</th></tr>
+<tr><td>MiniCheck, on the translation</td><td>0.49</td><td>0.86</td><td>75%</td></tr>
+<tr><td>mDeBERTa, on the original</td><td>0.06</td><td>0.57</td><td>81%</td></tr>
+<tr style="background:#f6e3d6"><td>Our router, choosing between them</td><td>0.16</td><td>0.63</td><td>81%</td></tr>
+</table>
+<p class="take">72% of these claims go to mDeBERTa, because a name or number did not survive translation.</p>
+<p class="foot">632 sentences of the Stage 3 candidates; FactCG calls 79% of them supported · a diagnostic, not a test of H3</p><div class="page"></div>
+<aside>Agreement near zero means the native verifier is close to chance relative to the grader. MiniCheck and FactCG read the same English translation and may share its errors, so this does not show which one is right; only human labels could. It does explain why reranking has little to work with. This analysis was added after the results were seen.</aside>
+</section>
