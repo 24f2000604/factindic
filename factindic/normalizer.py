@@ -199,7 +199,7 @@ def anchor_prf(a_s, a_d, a_r, d_text=None, lang=None):
 
 def salient_anchors(a_d, d_text, lang, top=6):
     """Most frequent source anchors (ties → earlier first mention), used by the Stage-4 J score."""
-    keys = list(anchor_set(a_d))
+    keys = sorted(anchor_set(a_d))           # a fixed order for ties, whatever the hash seed
     if not keys:
         return []
     toks = d_text.split()

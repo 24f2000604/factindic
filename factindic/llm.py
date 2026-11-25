@@ -7,7 +7,7 @@ import time
 
 import torch
 
-from .config import IS_LOCAL
+from .config import IS_LOCAL, safe_attention
 
 DEV = "cuda"
 
@@ -89,6 +89,7 @@ def _gemma_split(model_id, **kw):
 def load_causal(model_id, adapter=None, attn_implementation=None, trials=None):
     """Returns (model, tok, precision_desc). Keeps the first config whose logits are finite."""
     import transformers as tf
+    safe_attention()
     tok = load_tokenizer(model_id)
     classes = [getattr(tf, c) for c in ("AutoModelForCausalLM", "AutoModelForImageTextToText",
                                         "AutoModelForMultimodalLM") if hasattr(tf, c)]

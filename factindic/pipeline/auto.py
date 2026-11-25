@@ -16,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ..config import CFG, DIRS, IS_KAGGLE, MODELS, ROOT
+from ..config import CFG, DIRS, IS_KAGGLE, IS_LOCAL, MODELS, ROOT
 from ..io import free_gpu, jl_read_glob, json_dump, json_load
 
 SELECTED = DIRS["outputs"] / "stage2_selected.json"
@@ -60,7 +60,8 @@ def s2s(shard, n_shards, name, **_):
         return
     train_seq2seq(name)
     seq2seq_gen_job(0, 1, name=name)
-    shutil.rmtree(DIRS["models"] / name, ignore_errors=True)     # 1-2 GB, not needed again
+    if not IS_LOCAL:                     # 1-2 GB, not needed again; a laptop has room to keep them
+        shutil.rmtree(DIRS["models"] / name, ignore_errors=True)
 
 
 def select(shard, n_shards, **_):
@@ -206,7 +207,7 @@ def _launch(job, shard, n, gpu, root, cfg):
     kwf.write_text(json.dumps(job.kw))
     log = logs / f"auto_{job.name}.{shard}.log"
     env = dict(os.environ, FACTINDIC_ROOT=str(root), FACTINDIC_CFG=json.dumps(cfg), CUDA_VISIBLE_DEVICES="" if gpu is None else str(gpu),
-               PYTORCH_ALLOC_CONF="expandable_segments:True", TOKENIZERS_PARALLELISM="false", PYTHONUTF8="1",
+               PYTORCH_ALLOC_CONF="expandable_segments:True", PYTORCH_CUDA_ALLOC_CONF="expandable_segments:True", TOKENIZERS_PARALLELISM="false", PYTHONUTF8="1",
                PYTHONPATH=str(Path(__file__).resolve().parents[2]) + os.pathsep + os.environ.get("PYTHONPATH", ""))
     p = subprocess.Popen([sys.executable, "-u", "-m", "factindic.parallel", job.func, str(kwf), str(shard), str(n)], env=env,
                          stdout=open(log, "a"), stderr=subprocess.STDOUT, start_new_session=True)

@@ -162,7 +162,7 @@ def seq2seq_gen_job(shard, n_shards, name, **_):
             torch.cuda.synchronize(); dt = (time.perf_counter() - t) / len(batch)
             outs = [(tok.decode(row, skip_special_tokens=True), dt) for row in g]
         for (item, r, v), e, (s, dt) in zip(batch, enc, outs):
-            s = s.replace(f"<2{r['lang']}>", "").strip()
+            s = s.split("</s>")[0].replace(f"<2{r['lang']}>", "").strip()     # IndicBARTSS's </s> is no special token here
             out.add(dict(item=item, uid=r["uid"], lang=r["lang"], variant=v, system=name, summary=s,
                          latency_s=dt, latency_mode="batch8", input_tokens=len(e),
                          input_fertility=len(e) / max(1, W(r["variants"][v])),
@@ -305,14 +305,14 @@ def dev_grade(system, tau=None):
     out = JsonlAppender(path, key_fn=lambda r: r["item"])
     todo = [g for g in gens if g["item"] not in out.done]
     if todo:
-        router = _dev_router()
+        router, ner = _dev_router()
         for g in todo:
             rec = recs[g["uid"]]
             cl = sentence_claims(g["summary"])
             v = router.verify(rec, g["variant"], cl) if cl else []
             frac = sum(x["p"] >= tau for x in v) / len(v) if v else 0.0
             sal = salient_anchors(rec["anchors"], rec["text"], rec["lang"])
-            ra = anchor_recall_salient(anchors(g["summary"], rec["lang"]), rec["anchors"], sal, rec["text"], rec["lang"])
+            ra = anchor_recall_salient(anchors(g["summary"], rec["lang"], ner.entities(g["summary"])), rec["anchors"], sal, rec["text"], rec["lang"])
             out.add(dict(item=g["item"], system=system, variant=g["variant"], lang=g["lang"], frac=frac,
                          R_anchor=ra, score=frac * ra, rougeL=rouge(rec["reference"], g["summary"])["rougeL"],
                          words=W(g["summary"])))
@@ -331,14 +331,16 @@ def _dev_router():
     global _ROUTER
     if _ROUTER is None:
         from ..mt import Translator
+        from ..ner import Tagger
         from ..verify import MiniCheck, NativeNLI, Router
-        _ROUTER = Router(Translator(cache_name="mt_cache_dev.jsonl"), MiniCheck(), NativeNLI())
+        # the tagger as in stage 4: without it the summary has no entity anchors and R_anchor is always about 0
+        _ROUTER = Router(Translator(cache_name="mt_cache_dev.jsonl"), MiniCheck(), NativeNLI()), Tagger(latin=False)
     return _ROUTER
 
 
 def release_dev_router():
     global _ROUTER
     if _ROUTER is not None:
-        _ROUTER.mt.close()
+        _ROUTER[0].mt.close()
     _ROUTER = None
     free_gpu()

@@ -61,4 +61,6 @@ def run(func_path, n_gpus=None, **kwargs):
 if __name__ == "__main__":
     func_path, job, i, n = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
     kwargs = json.loads(Path(job).read_text())
+    from factindic.config import safe_attention
+    safe_attention()
     _resolve(func_path)(shard=i, n_shards=n, **kwargs)

@@ -35,13 +35,11 @@ def main(model_id):
         return ip.postprocess_batch(dec, lang="eng_Latn")
 
     def safe(sents, src, retry):
-        err = None
         try:
             return run(sents, src, retry)
-        except torch.cuda.OutOfMemoryError as e:
-            err = e
-        if len(sents) == 1:
-            raise err
+        except torch.cuda.OutOfMemoryError:      # not stored: its traceback would keep the failed batch on the GPU
+            if len(sents) == 1:
+                raise
         torch.cuda.empty_cache()
         mid = len(sents) // 2
         return safe(sents[:mid], src, retry) + safe(sents[mid:], src, retry)

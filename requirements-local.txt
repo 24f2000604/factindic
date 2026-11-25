@@ -7,7 +7,7 @@ scipy==1.15.3
 scikit-learn==1.6.1
 statsmodels==0.14.4
 matplotlib==3.10.0
-protobuf==5.29.5
+protobuf==7.36.1          # sentencepiece 0.2.3 needs 7.x to read spiece.model (mT5, IndicBARTSS)
 pyarrow==21.0.0
 psutil
 packaging

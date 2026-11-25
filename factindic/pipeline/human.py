@@ -130,10 +130,8 @@ def lookback_detector(labels_from="factcg", scored=None):
     if not feats:
         return None
     ev = {}
-    for f in DIRS["eval"].glob("eval_*.jsonl"):
-        if ".shard" in f.name:
-            continue
-        for r in jl_read_glob(f):
+    for name in sorted({f.name.split(".")[0] for f in DIRS["eval"].glob("eval_*.jsonl")}):     # shard files included
+        for r in jl_read_glob(DIRS["eval"] / f"{name}.jsonl"):
             ev[(r["system"], r["item"])] = r
     X, y, groups = [], [], []
     gen_cache = {}

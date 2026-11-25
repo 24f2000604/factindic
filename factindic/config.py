@@ -189,6 +189,17 @@ def hf_login():
     return bool(tok)
 
 
+def safe_attention():
+    """On the RTX 5050 (torch 2.8, CUDA 12.8) PyTorch's memory-efficient attention kernel silently gives wrong
+    results for Gemma-4 when the sequence length is 32k + 1 (513, 673, 1089: logits off by 10-30). The math
+    kernel agrees with eager attention at every length."""
+    if IS_LOCAL:
+        import torch
+        torch.backends.cuda.enable_mem_efficient_sdp(False)
+        torch.backends.cuda.enable_flash_sdp(False)
+        torch.backends.cuda.enable_cudnn_sdp(False)
+
+
 def max_new_tokens(model_key):
     g = CFG["gen"]
     return g["max_new_tokens_by_model"].get(model_key, g["max_new_tokens"])
